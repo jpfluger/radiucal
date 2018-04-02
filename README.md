@@ -18,3 +18,10 @@ radius_accept_attr=64:d:13
 "user2" MSCHAPV2 "password1" [2]
 radius_accept_attr=64:d:14
 ```
+
+## MAB
+
+To perform mac-bypass
+```
+"001122334455" MACACL "001122334455"
+```
