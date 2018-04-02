@@ -1,4 +1,4 @@
 hostapd
 ===
 
-How to get hostapd to perform 802.1x authentication (or how to live without freeradius)
+Using hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
