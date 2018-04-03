@@ -198,7 +198,8 @@ def _process(output):
             p = a[0].split(".")
             for m in a[1]:
                 csv_writer.writerow([p[1], p[0], m])
-    # eap_users
+    # eap_users and preauth
+    manifest = []
     with open(output + "eap_users", 'w') as f:
         f.write("* PEAP\n")
         for u in store.get_eap_user():
@@ -207,6 +208,12 @@ def _process(output):
         for u in store.get_eap_mab():
             f.write('"{}" MACACL "{}"\n'.format(u[0], u[0]))
             write_vlan(f, u[1])
+            manifest.append((u[0], u[0]))
+    for u in store.get_tag(store.umac):
+        manifest.append((u[0], u[1]))
+    with open(output + "manifest", 'w') as f:
+        for m in sorted(manifest):
+            f.write("{}.{}\n".format(m[0], m[1]).lower())
 
 
 def write_vlan(f, vlan_id):

@@ -7,16 +7,18 @@ AUDIT_CSV_SORT="${OUT}audit.sort.csv"
 rm -rf $OUT
 mkdir -p $OUT
 cp *.py $USRS
+fail=0
 python ../config_compose.py --output $OUT
-diff eap_users $OUT/eap_users
-if [ $? -ne 0 ]; then
-    echo "different composed results..."
-    exit -1
-fi
-
+fail=$?
 cat $AUDIT_CSV | sort > $AUDIT_CSV_SORT
-diff audit_exp.csv $AUDIT_CSV_SORT
-if [ $? -ne 0 ]; then
-    echo "different audit results..."
-    exit -1
+mv $AUDIT_CSV_SORT $AUDIT_CSV
+for f in $(echo "audit.csv manifest eap_users"); do
+    diff -u $f ${OUT}$f
+    if [ $? -ne 0 ]; then
+        echo "$f failed diff..."
+        fail=1
+    fi
+done
+if [ $fail -ne 0 ]; then
+    exit 1
 fi
