@@ -1,15 +1,17 @@
-hostapd
+radiucal
 ===
 
-Using hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
+Using a go proxy+hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
 
 [![Build Status](https://travis-ci.org/epiphyte/radiucal.png)](https://travis-ci.org/epiphyte/radiucal)
 
-# notes
+# hostapd
+
+## notes
 
 Information that may be useful when exploring hostapd
 
-## accept attributes
+### accept attributes
 
 the doc mentions it but the only examples easy to find were in the hostapd tests, this is the EAP user file syntax for special attributes
 ```
@@ -21,7 +23,7 @@ radius_accept_attr=64:d:13
 radius_accept_attr=64:d:14
 ```
 
-## MAB
+### MAB
 
 To perform mac-bypass
 ```
