@@ -1,8 +1,8 @@
 diff --git a/src/radius/radius_server.c b/src/radius/radius_server.c
-index 0a8f448e7..ef5cada45 100644
+index 0a8f448e7..0dfa91b26 100644
 --- a/src/radius/radius_server.c
 +++ b/src/radius/radius_server.c
-@@ -622,6 +622,64 @@ static void radius_server_testing_options(struct radius_session *sess,
+@@ -622,6 +622,82 @@ static void radius_server_testing_options(struct radius_session *sess,
  #endif /* CONFIG_TESTING_OPTIONS */
  }
  
@@ -36,7 +36,6 @@ index 0a8f448e7..ef5cada45 100644
 +        if (ret == 0) {
 +            clear_username = 1;
 +            int clear_calling;
-+            char cmd[100] = "";
 +            char* calling_id;
 +            clear_calling = 0;
 +			printf_encode(username, user_len * 4 + 1, user, user_len);
@@ -47,12 +46,31 @@ index 0a8f448e7..ef5cada45 100644
 +            if (ret == 0) {
 +                clear_calling = 1;
 +				printf_encode(calling_id, mac_len * 4 + 1, mac, mac_len);
++                char cmd[100] = "";
 +                strcat(cmd, "radusermac");
 +                strcat(cmd, " ");
 +                strcat(cmd, username);
 +                strcat(cmd, " ");
 +                strcat(cmd, calling_id);
-+                ret = system(cmd);
++                int i = 0;
++                while (i < sizeof(cmd)) {
++                    if (isalpha(cmd[i]) ||
++                        cmd[i] == '.' ||
++                        cmd[i] == '-' ||
++                        cmd[i] == ':' ||
++                        cmd[i] == ' ' ||
++                        cmd[i] == '\0' ||
++                        (cmd[i] >= '0' && cmd[i] <= '9')) {
++                    } else {
++                        RADIUS_DEBUG("Invalid character in command string");
++                        ret = 1;
++                        break;
++                    }
++                    i++;
++                }
++                if (ret == 0) {
++                    ret = system(cmd);
++                }
 +            }
 +            if (clear_calling > 0) {
 +				os_free(calling_id);
@@ -67,7 +85,7 @@ index 0a8f448e7..ef5cada45 100644
  
  static struct radius_session *
  radius_server_get_new_session(struct radius_server_data *data,
-@@ -635,6 +693,12 @@ radius_server_get_new_session(struct radius_server_data *data,
+@@ -635,6 +711,12 @@ radius_server_get_new_session(struct radius_server_data *data,
  	struct eap_config eap_conf;
  	struct eap_user tmp;
  
