@@ -3,8 +3,6 @@
 from datetime import datetime
 import re
 
-PASSWORD_LENGTH = 32
-
 def is_valid_mac(possible_mac):
   """check if an object is a mac."""
   valid = False
@@ -106,17 +104,8 @@ class Assignment(object):
         for mac in self.macs:
             if not is_mac(mac):
                 return False
-        if self.password is None or len(self.password) < 32:
+        if self.password is None or len(self.password) == 0:
             return self.report("no or short password")
-        for c in self.password:
-            try:
-                int(c)
-            except ValueError:
-                if c == '|' or c == '.':
-                    pass
-                else:
-                    return self.report("invalid character in password")
-
         if self.bypass is not None and len(self.bypass) > 0:
             for mac in self.bypass:
                 if not is_mac(mac, category='bypass'):
