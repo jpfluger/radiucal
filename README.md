@@ -67,3 +67,10 @@ To perform mac-bypass for a mac
 ```
 "001122334455" MACACL "001122334455"
 ```
+
+## radiucal-tools
+
+tools to:
+* report from radiucal
+* help setup hostapd
+* manage radiucal/hostapd settings
