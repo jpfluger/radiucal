@@ -7,6 +7,7 @@ ifeq ($(VERSION),)
 	VERSION=master
 endif
 export GOPATH := $(PWD)/vendor
+.PHONY: tools
 
 all: clean deps radiucal tools format
 

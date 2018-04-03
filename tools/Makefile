@@ -1,4 +1,5 @@
 SRC=$(shell find . -type f | grep "\.py$$")
+.PHONY: tests
 all: tests analyze
 
 tests:
