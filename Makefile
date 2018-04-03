@@ -8,13 +8,13 @@ ifeq ($(VERSION),)
 endif
 export GOPATH := $(PWD)/vendor
 
-all: clean deps radiacal format
+all: clean deps radiucal format
 
 deps:
 	git submodule update --init --recursive
 
-radiacal:
-	go build -o $(BIN)radiacal -ldflags '-X main.vers=$(VERSION)' $(SOURCE)main.go
+radiucal:
+	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(SOURCE)main.go
 
 format:
 	@echo $(SRC)
