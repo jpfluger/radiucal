@@ -1,0 +1,10 @@
+[Unit]
+Description=RADIUS proxy frontend for preauth+hostapd
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/radiucal
+
+[Install]
+WantedBy=multi-user.target
