@@ -5,17 +5,18 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"sync"
-	"log"
 )
 
 const bSize = 1500
+
 var (
-	proxy *net.UDPConn
+	proxy         *net.UDPConn
 	serverAddress *net.UDPAddr
-	clients map[string]*connection = make(map[string]*connection)
-	mutex *sync.Mutex = new(sync.Mutex)
+	clients       map[string]*connection = make(map[string]*connection)
+	mutex         *sync.Mutex            = new(sync.Mutex)
 )
 
 type connection struct {
@@ -29,7 +30,7 @@ func logError(message string, err error) bool {
 	}
 	log.Println(fmt.Sprintf("[ERROR] %s", message))
 	log.Println(err)
-	return true;
+	return true
 }
 
 func newConnection(srv, cli *net.UDPAddr) *connection {
@@ -42,7 +43,6 @@ func newConnection(srv, cli *net.UDPAddr) *connection {
 	conn.server = srvudp
 	return conn
 }
-
 
 func setup(hostport string, port int) error {
 	saddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
