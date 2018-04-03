@@ -37,5 +37,5 @@ done
 if [ $run -ne 0 ]; then
     print-bar "ERROR - unable to process certificate renewal!!!"
 else
-    print-bar "before start/restarting radius, update the clients.conf and add [certprivkey = <password>]"
+    print-bar "make sure to update the /etc/hostapd/hostapd.conf with the private key password"
 fi
