@@ -3,11 +3,34 @@ radiucal
 
 Using a go proxy+hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
 
+# install
+
+install from the epiphyte [repository](https://mirror.epiphyte.network/repos)
+```
+pacman -S hostapd-server radiucal radicual-tools
+```
+
+# components
+
+## radiucal
+
+radiucal is a go proxy that receives UDP packets and routes them along (namely to hostapd/another radius server)
+
+### build
+
+clone this repository
+```
+make
+```
+
+run
+```
+./bin/radiucal
+```
+
 [![Build Status](https://travis-ci.org/epiphyte/radiucal.png)](https://travis-ci.org/epiphyte/radiucal)
 
-# hostapd
-
-## notes
+## hostapd
 
 Information that may be useful when exploring hostapd
 
