@@ -1,6 +1,6 @@
 [Unit]
 Description=RADIUS proxy frontend for preauth+hostapd
-After=network.target
+After=hostapd.service
 
 [Service]
 Type=simple
