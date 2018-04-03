@@ -3,6 +3,8 @@ hostapd
 
 Using hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
 
+[![Build Status](https://travis-ci.org/epiphyte/radiucal.png)](https://travis-ci.org/epiphyte/radiucal)
+
 # notes
 
 Information that may be useful when exploring hostapd
