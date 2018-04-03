@@ -25,7 +25,7 @@ var (
 	serverAddress *net.UDPAddr
 	clients       map[string]*connection = make(map[string]*connection)
 	mutex         *sync.Mutex            = new(sync.Mutex)
-	emptyBuffer   [bSize]byte
+	fileLock	  *sync.Mutex			 = new(sync.Mutex)
 )
 
 type context struct {
@@ -128,6 +128,8 @@ func preauth(b string, ctx *context) error {
 }
 
 func mark(ctx *context, result, user, calling string) {
+	fileLock.Lock()
+	defer fileLock.Unlock()
 	t := time.Now()
 	logPath := filepath.Join(ctx.logs, fmt.Sprintf("radiucal.audit.%s", t.Format("2006-01-02")))
 	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
