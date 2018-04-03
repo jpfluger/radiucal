@@ -10,6 +10,6 @@ fi
 LOG=${LIB}log/radiucal.audit.$DATE
 if [ -e $LOG ]; then
     lines=$(cat $LOG | wc -l)
-    cat $LOG | tail -n +$((SRT_LINE+1)) | uniq | smirc
+    cat $LOG | tail -n +$((SRT_LINE+1)) | uniq | cut -d " " -f 2- | smirc
     echo "$lines" > $LAST
 fi
