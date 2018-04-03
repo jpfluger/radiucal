@@ -4,7 +4,6 @@ import argparse
 import os
 import users
 import users.__config__
-import wrapper
 import importlib
 import csv
 
@@ -84,13 +83,16 @@ class ConfigMeta(object):
         self.vlan_initiate.append(vlan_to)
 
 
-def _create_obj(macs, password, attrs, port_bypassed, wildcards):
-    """create a user definition."""
-    return {wrapper.freepydius.MAC_KEY: macs,
-            wrapper.freepydius.PASS_KEY: password,
-            wrapper.freepydius.ATTR_KEY: attrs,
-            wrapper.freepydius.PORT_BYPASS_KEY: port_bypassed,
-            wrapper.freepydius.WILDCARD_KEY: wildcards}
+class EAPUser(object):
+    """EAP user definition."""
+
+    def __init__(self, macs, password, attrs, port_bypassed, wildcards):
+        """Init the instance."""
+        self.macs = macs
+        self.password = password
+        self.attrs = attrs
+        self.port_bypass = port_bypassed
+        self.wildcard = wildcards
 
 
 def _get_mod(name):
@@ -124,7 +126,7 @@ def _common_call(common, method, entity):
 
 def check_object(obj):
     """Check an object."""
-    return obj.check(wrapper)
+    return obj.check()
 
 
 def _process(output, audit):
@@ -198,11 +200,11 @@ def _process(output, audit):
                 raise Exception(fqdn + " previously defined")
             # use config definitions here
             if not obj.no_login:
-                user_objs[fqdn] = _create_obj(macs,
-                                              password,
-                                              attrs,
-                                              port_bypassed,
-                                              wildcards)
+                user_objs[fqdn] = EAPUser(macs,
+                                          password,
+                                          attrs,
+                                          port_bypassed,
+                                          wildcards)
             if bypass is not None and len(bypass) > 0:
                 for mac_bypass in bypass:
                     if mac_bypass in bypass_objs:
@@ -216,6 +218,12 @@ def _process(output, audit):
                 user_macs[key] = []
             user_macs[key].append((vlan, sorted(set(user_all))))
     meta.verify()
+    with open(output, 'w') as f:
+        csv_writer = csv.writer(f, lineterminator=os.linesep)
+        for u in user_objs:
+            o = user_objs[u]
+            for g in o.build():
+                csv_writer.writerow(g)
     with open(audit, 'w') as f:
         csv_writer = csv.writer(f, lineterminator=os.linesep)
         for u in user_macs:

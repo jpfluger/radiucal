@@ -5,10 +5,21 @@ import re
 
 PASSWORD_LENGTH = 32
 
+def is_valid_mac(possible_mac):
+  """check if an object is a mac."""
+  valid = False
+  if len(possible_mac) == 12:
+    valid = True
+    for c in possible_mac:
+      if c not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']:
+        valid = False
+        break
+  return valid
 
-def is_mac(wrapper, value, category=None):
+
+def is_mac(value, category=None):
     """validate if something appears to be a mac."""
-    valid = wrapper.is_mac(value) 
+    valid = is_valid_mac(value) 
     if not valid:
         cat = ''
         if category is not None:
@@ -31,7 +42,7 @@ class VLAN(object):
         self.desc = None
         self.group = None
 
-    def check(self, wrapper):
+    def check(self, ):
         """Check the definition."""
         if self.name is None or len(self.name) == 0 \
            or not isinstance(self.num, int):
@@ -76,7 +87,7 @@ class Assignment(object):
         self.macs = set(self.macs + other.macs)
         self.group = other.group
 
-    def check(self, wrapper):
+    def check(self):
         """check the assignment definition."""
         if self.inherits:
             self.copy(self.inherits)
@@ -94,7 +105,7 @@ class Assignment(object):
         if self.macs is None or len(self.macs) == 0:
             return self.report("no macs listed")
         for mac in self.macs:
-            if not is_mac(wrapper, mac):
+            if not is_mac(mac):
                 return False
         if self.password is None or len(self.password) < 32:
             return self.report("no or short password")
@@ -109,14 +120,14 @@ class Assignment(object):
 
         if self.bypass is not None and len(self.bypass) > 0:
             for mac in self.bypass:
-                if not is_mac(wrapper, mac, category='bypass'):
+                if not is_mac(mac, category='bypass'):
                     return False 
         if self.port_bypass is not None and len(self.port_bypass):
             already_set = self.macs
             if self.bypass is not None:
                 already_set = already_set + self.bypass
             for mac in self.port_bypass:
-                if not is_mac(wrapper, mac):
+                if not is_mac(mac):
                     return False
                 if mac in already_set:
                     return self.report("invalid port bypass mac")
