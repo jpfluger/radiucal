@@ -25,7 +25,7 @@ var (
 	serverAddress *net.UDPAddr
 	clients       map[string]*connection = make(map[string]*connection)
 	mutex         *sync.Mutex            = new(sync.Mutex)
-	fileLock	  *sync.Mutex			 = new(sync.Mutex)
+	fileLock      *sync.Mutex            = new(sync.Mutex)
 )
 
 type context struct {
