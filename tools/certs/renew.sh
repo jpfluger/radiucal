@@ -8,7 +8,6 @@ $@
 Press <Enter> to continue"
     read
 }
-cd /etc/raddb/certs
 print-bar "this script assumes all passwords are the same, this is viable for a restricted area LAN at best. you will be prompted for a password (in all future cases - use the same one)."
 if [ -f passwords.mk ]; then
     print-bar "WARN - a passwords.mk file already exists..."

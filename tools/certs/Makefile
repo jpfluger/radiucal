@@ -28,10 +28,7 @@ include passwords.mk
 #
 ######################################################################
 .PHONY: all
-all: index.txt serial dh server ca client
-
-.PHONY: client
-client: client.pem
+all: index.txt serial dh server ca
 
 .PHONY: ca
 ca: ca.der
@@ -40,13 +37,11 @@ ca: ca.der
 server: server.pem server.vrfy
 
 .PHONY: verify
-verify: server.vrfy client.vrfy
+verify: server.vrfy
 
-passwords.mk: server.cnf ca.cnf client.cnf 
+passwords.mk: server.cnf ca.cnf
 	@echo "PASSWORD_SERVER	= '$(shell grep output_password server.cnf | sed 's/.*=//;s/^ *//')'"		> $@
 	@echo "PASSWORD_CA	= '$(shell grep output_password ca.cnf | sed 's/.*=//;s/^ *//')'"		>> $@
-	@echo "PASSWORD_CLIENT	= '$(shell grep output_password client.cnf | sed 's/.*=//;s/^ *//')'"		>> $@
-	@echo "USER_NAME	= '$(shell grep emailAddress client.cnf | grep '@' | sed 's/.*=//;s/^ *//')'"	>> $@
 	@echo "CA_DEFAULT_DAYS  = '$(shell grep default_days ca.cnf | sed 's/.*=//;s/^ *//')'"			>> $@
 
 ######################################################################
@@ -114,7 +109,7 @@ printca:
 	$(OPENSSL) x509 -text -in ca.pem
 
 clean:
-	@rm -f *~ *old client.csr client.key client.crt client.p12 client.pem
+	@rm -f *~ *old 
 
 #
 #	Make a target that people won't run too often.
