@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"layeh.com/radius"
 )
 
 const bSize = 1500
