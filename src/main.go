@@ -9,6 +9,7 @@ import (
 	"net"
 	"sync"
 	"layeh.com/radius"
+	. "layeh.com/radius/rfc2865"
 )
 
 const bSize = 1500
@@ -75,8 +76,19 @@ func runConnection(conn *connection) {
 	}
 }
 
-func audit(conn *connection) {
-	runConnection(conn)
+func preauth(b string) error  {
+	p, err := radius.Parse([]byte(b), []byte(""))
+	if err != nil {
+		log.Println(err)
+		// we can either parse or not understand
+		// if we don't understand there is nothing to look at anyway
+		return nil
+	}
+	username, err := UserName_LookupString(p)
+	calling, err := CallingStationID_LookupString(p)
+	log.Println(username)
+	log.Println(calling)
+	return nil
 }
 
 func runProxy() {
@@ -97,9 +109,14 @@ func runProxy() {
 			}
 			clients[saddr] = conn
 			mutex.Unlock()
-			go audit(conn)
+			go runConnection(conn)
 		} else {
 			mutex.Unlock()
+		}
+		audit := string(buffer[:n])
+		err = preauth(audit)
+		if err != nil {
+			continue
 		}
 		_, err = conn.server.Write(buffer[0:n])
 		logError("server write", err)
