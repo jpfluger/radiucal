@@ -8,7 +8,7 @@ ifeq ($(VERSION),)
 endif
 export GOPATH := $(PWD)/vendor
 
-all: clean deps radiucal format tools
+all: clean deps radiucal tools format
 
 deps:
 	git submodule update --init --recursive
