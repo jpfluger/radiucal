@@ -83,18 +83,6 @@ class ConfigMeta(object):
         self.vlan_initiate.append(vlan_to)
 
 
-class EAPUser(object):
-    """EAP user definition."""
-
-    def __init__(self, macs, password, attrs, port_bypassed, wildcards):
-        """Init the instance."""
-        self.macs = macs
-        self.password = password
-        self.attrs = attrs
-        self.port_bypass = port_bypassed
-        self.wildcard = wildcards
-
-
 def _get_mod(name):
     """import the module dynamically."""
     return importlib.import_module("users." + name)
@@ -129,7 +117,7 @@ def check_object(obj):
     return obj.check()
 
 
-def _process(output, audit):
+def _process(output):
     """process the composition of users."""
     common_mod = None
     try:
@@ -137,9 +125,7 @@ def _process(output, audit):
         print("loaded common definitions...")
     except Exception as e:
         print("defaults only...")
-    user_objs = {}
     vlans = None
-    bypass_objs = {}
     meta = ConfigMeta()
     for v_name in _get_by_indicator(VLAN_INDICATOR):
         print("loading vlan..." + v_name)
@@ -160,8 +146,7 @@ def _process(output, audit):
     if vlans is None:
         raise Exception("missing required config settings...")
     meta.all_vlans = vlans.keys()
-    vlans_with_users = {}
-    user_macs = {}
+    store = Store()
     for f_name in _get_by_indicator(USER_INDICATOR):
         print("composing..." + f_name)
         for obj in _load_objs(f_name, users.__config__.Assignment):
@@ -173,7 +158,7 @@ def _process(output, audit):
             vlan = obj.vlan
             if vlan not in vlans:
                 raise Exception("no vlan defined for " + key)
-            vlans_with_users[vlan] = vlans[vlan]
+            store.add_vlan(vlan, vlans[vlan])
             meta.vlan_user(vlan, key)
             fqdn = vlan + "." + key
             if not check_object(obj):
@@ -186,7 +171,6 @@ def _process(output, audit):
             password = obj.password
             bypass = sorted(obj.bypass)
             port_bypassed = sorted(obj.port_bypass)
-            wildcards = sorted(obj.wildcard)
             attrs = []
             if obj.attrs:
                 attrs = sorted(obj.attrs)
@@ -196,43 +180,102 @@ def _process(output, audit):
             if not obj.inherits:
                 meta.password(password)
             meta.bypassed(bypass)
-            if fqdn in user_objs:
-                raise Exception(fqdn + " previously defined")
             # use config definitions here
             if not obj.no_login:
-                user_objs[fqdn] = EAPUser(macs,
-                                          password,
-                                          attrs,
-                                          port_bypassed,
-                                          wildcards)
+                store.add_user(fqdn, macs, password, attrs, port_bypassed)
             if bypass is not None and len(bypass) > 0:
                 for mac_bypass in bypass:
-                    if mac_bypass in bypass_objs:
-
-                        raise Exception(mac_bypass + " previously defined")
-                    bypass_objs[mac_bypass] = vlan
+                    store.add_mac(mac_bypass, vlan)
             user_all = []
             for l in [obj.macs, obj.port_bypass, obj.bypass]:
                 user_all += list(l)
-            if key not in user_macs:
-                user_macs[key] = []
-            user_macs[key].append((vlan, sorted(set(user_all))))
+            store.add_audit(fqdn, sorted(set(user_all)))
     meta.verify()
-    with open(output, 'w') as f:
+    # audit outputs
+    with open(output + "audit.csv", 'w') as f:
         csv_writer = csv.writer(f, lineterminator=os.linesep)
-        for u in user_objs:
-            o = user_objs[u]
-            for g in o.build():
-                csv_writer.writerow(g)
-    with open(audit, 'w') as f:
-        csv_writer = csv.writer(f, lineterminator=os.linesep)
-        for u in user_macs:
-            for obj in user_macs[u]:
-                vlan = obj[0]
-                macs = obj[1]
-                for m in macs:
-                    csv_writer.writerow([u, vlan, m])
+        for a in sorted(store.get_tag(store.audit)):
+            for m in a[1]:
+                csv_writer.writerow([a[0], m])
+    # eap_users
+    with open(output + "eap_users", 'w') as f:
+        f.write("* PEAP\n")
+        for u in store.get_eap_user():
+            f.write('"{}" MSCHAPV2 "{}" [2]\n'.format(u[0], u[1]))
+            write_vlan(f, u[2])
+        for u in store.get_eap_mab():
+            f.write('"{}" MACACL "{}"\n'.format(u[0], u[0]))
+            write_vlan(f, u[1])
 
+
+def write_vlan(f, vlan_id):
+    f.write('radius_accept_attr=64:d:{}\n\n'.format(vlan_id))
+
+
+class Store(object):
+    def __init__(self):
+        self._data = []
+        self.vlan = "VLAN"
+        self.umac = "UMAC"
+        self.pwd = "PWD"
+        self.attr = "ATTR"
+        self.bypass = "PORTBYPASS"
+        self.mac = "MAC"
+        self.audit = "AUDIT"
+        self._users = []
+        self._bypass = []
+        self._vlans = {}
+
+    def get_tag(self, tag):
+        for item in self._data:
+            if item[0] == tag:
+                yield item[1:]
+
+    def add_vlan(self, vlan_name, vlan_id):
+        self._vlans[vlan_name] = vlan_id
+        self._add(self.vlan, vlan_name, vlan_id)
+
+    def _add(self, tag, key, value):
+        self._data.append([tag, key, value])
+
+    def add_user(self,
+                 username,
+                 macs,
+                 password,
+                 attrs,
+                 port_bypass):
+        if username in self._users:
+            raise Exception("{} already defined".format(username))
+        self._users.append(username)
+        for m in macs:
+            self._add(self.umac, username, m)
+        self._add(self.pwd, username, password)
+        for a in attrs:
+            self._add(self.attr, username, attrs)
+        for p in port_bypass:
+            self._add(self.bypass, username, p)
+
+    def add_mac(self, mac, vlan):
+        if mac in self._bypass:
+            raise Exception("{} already defined".format(mac))
+        self._bypass.append(mac)
+        self._add(self.mac, mac, vlan)
+
+    def add_audit(self, user, objs):
+        self._add(self.audit, user, objs)
+
+
+    def get_eap_mab(self):
+        for m in self.get_tag(self.mac):
+            yield [m[0], self.get_vlan(m[1])]
+
+    def get_eap_user(self):
+        for u in self.get_tag(self.pwd):
+            vlan = u[0].split(".")[0]
+            yield [u[0], u[1], self.get_vlan(vlan)]
+
+    def get_vlan(self, name):
+        return self._vlans[name]
 
 def main():
     """main entry."""
@@ -240,9 +283,8 @@ def main():
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument("--output", type=str, required=True)
-        parser.add_argument("--audit", type=str, required=True)
         args = parser.parse_args()
-        _process(args.output, args.audit)
+        _process(args.output)
         success = True
     except Exception as e:
         print('unable to compose')

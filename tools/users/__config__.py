@@ -64,7 +64,6 @@ class Assignment(object):
         self.disabled = False
         self.inherits = None
         self.port_bypass = []
-        self.wildcard = []
         self.group = None
 
     def _compare_date(self, value, regex, today):
