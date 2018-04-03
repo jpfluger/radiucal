@@ -203,7 +203,7 @@ def _process(output):
     with open(output + "eap_users", 'w') as f:
         f.write("* PEAP\n")
         for u in store.get_eap_user():
-            f.write('"{}" MSCHAPV2 "{}" [2]\n'.format(u[0], u[1]))
+            f.write('"{}" MSCHAPV2 hash:{} [2]\n'.format(u[0], u[1]))
             write_vlan(f, u[2])
         for u in store.get_eap_mab():
             f.write('"{}" MACACL "{}"\n'.format(u[0], u[0]))
