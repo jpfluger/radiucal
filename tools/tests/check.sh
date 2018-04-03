@@ -1,12 +1,14 @@
 #!/bin/bash
-OUT="actual.txt"
+OUT="bin/"
 USRS="../users/"
-AUDIT_CSV="actual.csv"
-AUDIT_CSV_SORT="actual.sort.csv"
+AUDIT_CSV="${OUT}audit.csv"
+AUDIT_CSV_SORT="${OUT}audit.sort.csv"
 
+rm -rf $OUT
+mkdir -p $OUT
 cp *.py $USRS
-python ../config_compose.py --output $OUT --audit $AUDIT_CSV
-diff expected.json $OUT
+python ../config_compose.py --output $OUT
+diff eap_users $OUT/eap_users
 if [ $? -ne 0 ]; then
     echo "different composed results..."
     exit -1

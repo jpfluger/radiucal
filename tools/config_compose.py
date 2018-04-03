@@ -195,8 +195,9 @@ def _process(output):
     with open(output + "audit.csv", 'w') as f:
         csv_writer = csv.writer(f, lineterminator=os.linesep)
         for a in sorted(store.get_tag(store.audit)):
+            p = a[0].split(".")
             for m in a[1]:
-                csv_writer.writerow([a[0], m])
+                csv_writer.writerow([p[1], p[0], m])
     # eap_users
     with open(output + "eap_users", 'w') as f:
         f.write("* PEAP\n")
@@ -209,11 +210,15 @@ def _process(output):
 
 
 def write_vlan(f, vlan_id):
+    """Write vlan assignment for login."""
     f.write('radius_accept_attr=64:d:{}\n\n'.format(vlan_id))
 
 
 class Store(object):
+    """Storage object."""
+
     def __init__(self):
+        """Init the instance."""
         self._data = []
         self.vlan = "VLAN"
         self.umac = "UMAC"
@@ -227,15 +232,18 @@ class Store(object):
         self._vlans = {}
 
     def get_tag(self, tag):
+        """Get tagged items."""
         for item in self._data:
             if item[0] == tag:
                 yield item[1:]
 
     def add_vlan(self, vlan_name, vlan_id):
+        """Add a vlan item."""
         self._vlans[vlan_name] = vlan_id
         self._add(self.vlan, vlan_name, vlan_id)
 
     def _add(self, tag, key, value):
+        """Backing tagged add."""
         self._data.append([tag, key, value])
 
     def add_user(self,
@@ -244,6 +252,7 @@ class Store(object):
                  password,
                  attrs,
                  port_bypass):
+        """Add a user definition."""
         if username in self._users:
             raise Exception("{} already defined".format(username))
         self._users.append(username)
@@ -256,26 +265,31 @@ class Store(object):
             self._add(self.bypass, username, p)
 
     def add_mac(self, mac, vlan):
+        """Add a bypass mac."""
         if mac in self._bypass:
             raise Exception("{} already defined".format(mac))
         self._bypass.append(mac)
         self._add(self.mac, mac, vlan)
 
     def add_audit(self, user, objs):
+        """Add an audit entry."""
         self._add(self.audit, user, objs)
 
-
     def get_eap_mab(self):
+        """Get eap entries for MAB."""
         for m in self.get_tag(self.mac):
-            yield [m[0], self.get_vlan(m[1])]
+            yield [m[0], self._get_vlan(m[1])]
 
     def get_eap_user(self):
+        """Get eap users."""
         for u in self.get_tag(self.pwd):
             vlan = u[0].split(".")[0]
-            yield [u[0], u[1], self.get_vlan(vlan)]
+            yield [u[0], u[1], self._get_vlan(vlan)]
 
-    def get_vlan(self, name):
+    def _get_vlan(self, name):
+        """Get vlans."""
         return self._vlans[name]
+
 
 def main():
     """main entry."""
