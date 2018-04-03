@@ -1,4 +1,5 @@
 #!/bin/bash
+# monitor auths and send to smirc
 LIB=/var/lib/radiucal/
 LAST=${LIB}last_audits
 LAST_TIME=""
