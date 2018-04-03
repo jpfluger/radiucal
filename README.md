@@ -23,7 +23,7 @@ clone this repository
 make
 ```
 
-run
+run (with a socket listening to be proxied to, e.g. hostapd-server)
 ```
 ./bin/radiucal
 ```
@@ -33,6 +33,13 @@ run
 ## hostapd
 
 Information that may be useful when exploring hostapd
+
+###
+
+this is documented but to to see debug output
+```
+hostapd -dd /etc/hostapd/hostapd.conf
+```
 
 ### eap users
 
