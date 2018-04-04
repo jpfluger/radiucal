@@ -1,5 +1,6 @@
 #!/bin/bash
 LOCAL_CONF=~/.config/epiphyte/env
+RADIUCAL_HOME=/var/lib/radiucal/
 source /etc/environment
 IS_LOCAL=0
 if [ -e $LOCAL_CONF ]; then
@@ -56,9 +57,33 @@ if [ -e $USERS ]; then
     fi
 fi
 
+_update_files() {
+    local p bname manifest
+    p=${RADIUCAL_HOME}users
+    manifest=$BIN/manifest
+    if [ ! -e $manifest ]; then
+        echo "missing required manifest!"
+        exit 1
+    fi
+    for e in $(find $p -type f); do
+        bname=$(basename $e)
+        cat $manifest | grep -q "$bname"
+        if [ $? -ne 0 ]; then
+            echo "dropping $bname"
+            rm -f $e
+        fi
+    done
+    for u in $(cat $manifest); do
+        touch ${p}$u
+    done
+}
+
 if [ $diffed -ne 0 ]; then
     echo "network configuration updated"
     if [ $IS_LOCAL -eq 0 ]; then
+        _update_files
+        cp $USERS $RADIUCAL_HOME/eap_users
+        kill -HUP $(pidof hostapd)
         # run local reports
         if [ -e "./reports" ]; then
             ./reports
