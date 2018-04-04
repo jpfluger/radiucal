@@ -15,7 +15,7 @@ deps:
 	git submodule update --init --recursive
 
 radiucal:
-	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(SOURCE)main.go
+	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(SOURCE)proxy.go $(SOURCE)main.go
 
 format:
 	@echo $(SRC)

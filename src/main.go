@@ -58,7 +58,7 @@ func logError(message string, err error) bool {
 func newConnection(srv, cli *net.UDPAddr) *connection {
 	conn := new(connection)
 	conn.client = cli
-	srvudp, err := net.DialUDP("udp", nil, srv)
+	srvudp, err := DialUDP("udp", srv)
 	if logError("dial udp", err) {
 		return nil
 	}
@@ -71,7 +71,7 @@ func setup(hostport string, port int) error {
 	if err != nil {
 		return err
 	}
-	pudp, err := net.ListenUDP("udp", saddr)
+	pudp, err := ListenUDP("udp", saddr)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func mark(ctx *context, result, user, calling string) {
 func runProxy(ctx *context) {
 	var buffer [bSize]byte
 	for {
-		n, cliaddr, err := proxy.ReadFromUDP(buffer[0:])
+		n, cliaddr, _, err := ReadFromUDPConn(proxy, buffer[0:])
 		if logError("read from udp", err) {
 			continue
 		}
