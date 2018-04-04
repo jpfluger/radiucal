@@ -55,7 +55,7 @@ systemctl enable --now radiucal.service
 
 if you wish to use radiucal-tools to generate certs
 ```
-cd /etc/hostapd/radiucal/certs
+cd /etc/hostapd/certs
 ./renew.sh
 ```
 and follow the prompts
