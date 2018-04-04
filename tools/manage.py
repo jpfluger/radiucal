@@ -508,10 +508,7 @@ def daily_report(env, running_config):
     with open(report_indicator, 'w') as f:
         f.write("")
     output = env.working_dir + "auths.md"
-    call(["python",
-          "report_auths.py",
-          "--output",
-          output],
+    call(["python", "auths.py", "--output", output],
          "report authorizations",
          working_dir=_get_utils(env))
     auths = None

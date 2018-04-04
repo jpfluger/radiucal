@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 )
 
 const bSize = 1500
@@ -29,8 +30,9 @@ var (
 )
 
 type context struct {
-	logs string
-	db   string
+	logs  string
+	db    string
+	debug bool
 }
 
 type connection struct {
@@ -123,8 +125,31 @@ func preauth(b string, ctx *context) error {
 		failure = errors.New(fmt.Sprintf("failed preauth: %s %s", username, calling))
 		result = "failed"
 	}
+	if ctx.debug {
+		go dump(ctx, p)
+	}
 	go mark(ctx, result, username, calling)
 	return failure
+}
+
+func dump(ctx *context, p *radius.Packet) {
+	for t, a := range p.Attributes {
+		log.Println(fmt.Sprintf("Type: %d", t))
+		for _, s := range a {
+			str := true
+			val := string(s)
+			for _, c := range val {
+				if !unicode.IsPrint(c) {
+					str = false
+					break
+				}
+			}
+			if !str {
+				val = fmt.Sprintf("%x", s)
+			}
+			log.Println(fmt.Sprintf("Value: %s", val))
+		}
+	}
 }
 
 func mark(ctx *context, result, user, calling string) {
@@ -187,6 +212,8 @@ func main() {
 	var host = flag.String("host", "localhost", "Server address")
 	var db = flag.String("db", lib+"users/", "user.mac directory")
 	var log = flag.String("log", lib+"log/", "audit logging")
+	var debug = flag.Bool("debug", false, "debug mode")
+	flag.Parse()
 	if !pathExists(*db) || !pathExists(*log) {
 		panic("missing required directory")
 	}
@@ -195,5 +222,5 @@ func main() {
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
-	runProxy(&context{db: *db, logs: *log})
+	runProxy(&context{db: *db, logs: *log, debug: *debug})
 }
