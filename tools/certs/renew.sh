@@ -31,9 +31,6 @@ done
 echo "rebuilding certs"
 ./bootstrap
 run=$?
-for f in $(ls *.cnf); do
-    git checkout -- $f
-done
 if [ $run -ne 0 ]; then
     print-bar "ERROR - unable to process certificate renewal!!!"
 else
