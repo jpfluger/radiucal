@@ -220,7 +220,7 @@ def write_vlan(f, vlan_id):
     """Write vlan assignment for login."""
     f.write('radius_accept_attr=64:d:13\n')
     f.write('radius_accept_attr=65:d:6\n')
-    f.write('radius_accept_attr=81:d:{}\n\n'.format(vlan_id))
+    f.write('radius_accept_attr=81:s:{}\n\n'.format(vlan_id))
 
 
 class Store(object):
