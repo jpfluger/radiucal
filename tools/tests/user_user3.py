@@ -3,9 +3,7 @@ import users.__config__ as __config__
 normal = __config__.Assignment()
 normal.macs = ["001122334455"]
 normal.vlan = "dev"
-normal.attrs = ["test=test"]
 normal.port_bypass = ["001122221100"]
-normal.wildcard = ["abc"]
 normal.group = 'test'
 
 admin = __config__.Assignment()
