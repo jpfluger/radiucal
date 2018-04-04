@@ -1,6 +1,7 @@
 #!/bin/bash
 LOCAL_CONF=~/.config/epiphyte/env
 RADIUCAL_HOME=/var/lib/radiucal/
+IS_DAILY=/tmp/
 source /etc/environment
 IS_LOCAL=0
 if [ -e $LOCAL_CONF ]; then
@@ -37,6 +38,11 @@ fi
 
 if [ $IS_LOCAL -eq 0 ]; then
     ./monitor
+    daily=${IS_DAILY}.radius-$(date +%Y-%m-%d)
+    if [ ! -e $daily ]; then
+        ./reports
+        touch $daily
+    fi
 fi
 
 python netconf.py --output $PWD/$BIN
