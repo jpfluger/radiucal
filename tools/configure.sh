@@ -34,7 +34,12 @@ if [ $? -ne 0 ]; then
     echo "unable to bootstrap (radiucal-utils|tools installed?)"
     exit 1
 fi
-python config_compose.py --output $PWD/$BIN
+
+if [ $IS_LOCAL -eq 0 ]; then
+    ./monitor
+fi
+
+python build.py --output $PWD/$BIN
 if [ $? -ne 0 ]; then
     echo "composition errors"
     exit 1
@@ -89,8 +94,8 @@ if [ $diffed -ne 0 ]; then
         exit 0
         # run local reports
         if [ -e "./reports" ]; then
-            ./reports
+            ./local-reports
         fi
-        ./radiucal-report
+        ./reports
     fi
 fi
