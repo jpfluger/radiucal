@@ -94,7 +94,7 @@ if [ $diffed -ne 0 ]; then
         exit 0
         # run local reports
         if [ -e "./reports" ]; then
-            ./local-reports
+            ./local-reports $IS_LOCAL
         fi
         ./reports
     fi
