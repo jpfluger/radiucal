@@ -59,7 +59,7 @@ fi
 
 _update_files() {
     local p bname manifest
-    p=${RADIUCAL_HOME}users
+    p=${RADIUCAL_HOME}users/
     manifest=$BIN/manifest
     if [ ! -e $manifest ]; then
         echo "missing required manifest!"
