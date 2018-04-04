@@ -91,6 +91,6 @@ if [ $diffed -ne 0 ]; then
         if [ -e "./reports" ]; then
             ./reports
         fi
-        radiucal-report
+        ./radiucal-report
     fi
 fi
