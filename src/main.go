@@ -29,10 +29,16 @@ var (
 	fileLock      *sync.Mutex            = new(sync.Mutex)
 )
 
+type authmode struct {
+	log     bool
+	enabled bool
+}
+
 type context struct {
-	logs  string
-	db    string
-	debug bool
+	logs    string
+	db      string
+	debug   bool
+	preauth *authmode
 }
 
 type connection struct {
@@ -128,7 +134,9 @@ func preauth(b string, ctx *context) error {
 	if ctx.debug {
 		go dump(ctx, p)
 	}
-	go mark(ctx, result, username, calling)
+	if ctx.preauth.log {
+		go mark(ctx, result, username, calling)
+	}
 	return failure
 }
 
@@ -187,10 +195,12 @@ func runProxy(ctx *context) {
 		} else {
 			mutex.Unlock()
 		}
-		audit := string(buffer[:n])
-		err = preauth(audit, ctx)
-		if err != nil {
-			continue
+		if ctx.preauth.enabled {
+			audit := string(buffer[:n])
+			err = preauth(audit, ctx)
+			if err != nil {
+				continue
+			}
 		}
 		_, err = conn.server.Write(buffer[0:n])
 		logError("server write", err)
@@ -213,6 +223,8 @@ func main() {
 	var db = flag.String("db", lib+"users/", "user.mac directory")
 	var log = flag.String("log", lib+"log/", "audit logging")
 	var debug = flag.Bool("debug", false, "debug mode")
+	var pre = flag.Bool("preauth", true, "preauth checks")
+	var preLog = flag.Bool("preauth-log", true, "preauth logging")
 	flag.Parse()
 	if !pathExists(*db) || !pathExists(*log) {
 		panic("missing required directory")
@@ -222,5 +234,6 @@ func main() {
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
-	runProxy(&context{db: *db, logs: *log, debug: *debug})
+	preauthing := &authmode{enabled: *pre, log: *preLog}
+	runProxy(&context{db: *db, logs: *log, debug: *debug, preauth: preauthing})
 }
