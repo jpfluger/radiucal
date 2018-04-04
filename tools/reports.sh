@@ -29,12 +29,14 @@ if [ ! -z "$1" ]; then
     DAILY=$1
 fi
 
+# VLAN->User membership
 MEMBERSHIP=${BIN}membership.md
 echo "| vlan | user |
 | ---  | --- |" > $MEMBERSHIP
 
 cat $AUDITS | sed "s/,/ /g" | awk '{print "| " $2, "|", $1 " |"}' | sort -u >> $MEMBERSHIP
 
+# User.VLAN macs assigned
 ASSIGNED=${BIN}assigned.md
 echo "| user | vlan | mac |
 | --- | --- | --- |" > $ASSIGNED
@@ -45,6 +47,7 @@ if [ $DAILY -ne 1 ]; then
     exit 0
 fi
 
+# Auth information
 AUTHS=${BIN}auths.md
 echo "| user | mac | last |
 | --- | --- | --- |" > $AUTHS
@@ -82,4 +85,8 @@ if [ ! -z "$files" ]; then
     notcruft=$(echo "$notcruft" | sed "s/^|//g")
     cat $AUDITS | sed "s/,/ /g" | awk '{print $2,".",$1}' | sed "s/ //g" | uniq | grep -v -E "($notcruft)" | sed "s/^/drop: /g" | sort -u | smirc
 fi
+
+# Leases
+leases=$(curl -s -k "$RPT_HOST/reports/view/dns?raw=true")
+
 _post
