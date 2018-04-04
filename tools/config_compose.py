@@ -191,8 +191,8 @@ def _process(output):
     # eap_users and preauth
     manifest = []
     with open(output + "eap_users", 'w') as f:
-        f.write("* PEAP\n\n")
         for u in store.get_eap_user():
+            f.write('"{}" PEAP\n\n'.format(u[0]))
             f.write('"{}" MSCHAPV2 hash:{} [2]\n'.format(u[0], u[1]))
             write_vlan(f, u[2])
         for u in store.get_eap_mab():
