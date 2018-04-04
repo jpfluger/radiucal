@@ -4,8 +4,10 @@ if [ ! -d "$PWD/users" ]; then
     exit 1
 fi
 DIR=/usr/share/radiucal/
-cp $DIR/configure configure
-chmod u+x configure
-for f in $(echo "config_compose new_user users/__config__ users/__init__"); do
+for s in $(echo "configure monitor reports"); do
+    cp $DIR/$s.sh $s
+    chmod u+x $s
+done
+for f in $(echo "netconf users users/__config__ users/__init__"); do
     cp $DIR/$f.py $PWD/$f.py
 done
