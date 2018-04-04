@@ -22,6 +22,8 @@ import (
 const bSize = 1500
 const lib = "/var/lib/radiucal/"
 
+var vers = "master"
+
 var (
 	proxy         *net.UDPConn
 	serverAddress *net.UDPAddr
@@ -243,6 +245,7 @@ func parseSecrets(secretFile string) string {
 
 func main() {
 	log.SetFlags(0)
+	log.Println(fmt.Sprintf("radiucal (%s)", vers))
 	var from = flag.Int("from", 1812, "Proxy (from) port")
 	var to = flag.Int("to", 1814, "Server (to) port")
 	var host = flag.String("host", "localhost", "Server address")
