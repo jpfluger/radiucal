@@ -95,6 +95,6 @@ if [ $diffed -ne 0 ]; then
         if [ -e "./reports" ]; then
             ./local-reports $IS_LOCAL
         fi
-        ./reports
+        ./reports 0
     fi
 fi
