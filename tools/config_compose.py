@@ -201,7 +201,7 @@ def _process(output):
     # eap_users and preauth
     manifest = []
     with open(output + "eap_users", 'w') as f:
-        f.write("* PEAP\n")
+        f.write("* PEAP\n\n")
         for u in store.get_eap_user():
             f.write('"{}" MSCHAPV2 hash:{} [2]\n'.format(u[0], u[1]))
             write_vlan(f, u[2])
@@ -218,7 +218,9 @@ def _process(output):
 
 def write_vlan(f, vlan_id):
     """Write vlan assignment for login."""
-    f.write('radius_accept_attr=64:d:{}\n\n'.format(vlan_id))
+    f.write('radius_accept_attr=64:d:13\n')
+    f.write('radius_accept_attr=65:d:6\n')
+    f.write('radius_accept_attr=81:d:{}\n\n'.format(vlan_id))
 
 
 class Store(object):

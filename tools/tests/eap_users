@@ -1,31 +1,52 @@
 * PEAP
+
 "dev.attr" MSCHAPV2 hash:e08bb5212dd623b9a1cd4d25bcc8b898 [2]
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
 "dev.disable" MSCHAPV2 hash:180599206f5dffdd3881a121110da8ad [2]
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
 "dev.pwd" MSCHAPV2 hash:9eebc40b1fb48ddb3309d824abc28ae3 [2]
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
 "prod.user1" MSCHAPV2 hash:ac0ae0d888d0e71c3dae227377a86012 [2]
-radius_accept_attr=64:d:11
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:11
 
 "dev.user1" MSCHAPV2 hash:ac0ae0d888d0e71c3dae227377a86011 [2]
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
 "prod.user2" MSCHAPV2 hash:c2f7aacb0c14b7fdfaddd4679102359d [2]
-radius_accept_attr=64:d:11
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:11
 
 "dev.user2" MSCHAPV2 hash:c2f7aacb0c14b7fdfaddd4679102359c [2]
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
 "prod.user3" MSCHAPV2 hash:e2192da00a1ccba417ec515395a044f7 [2]
-radius_accept_attr=64:d:11
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:11
 
 "dev.user3" MSCHAPV2 hash:e2192da00a1ccba417ec515395a044f7 [2]
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
 "112233445566" MACACL "112233445566"
-radius_accept_attr=64:d:10
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:10
 
