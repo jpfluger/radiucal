@@ -25,7 +25,6 @@ class ConfigMeta(object):
         self.all_vlans = []
         self.user_name = []
         self.vlan_users = []
-        self.attrs = []
         self.vlan_initiate = []
 
     def password(self, password):
@@ -47,11 +46,6 @@ class ConfigMeta(object):
         """user+mac combos."""
         self.macs = self.macs + macs
         self.macs = list(set(self.macs))
-
-    def attributes(self, attrs):
-        """set attributes."""
-        self.attrs = self.attrs + attrs
-        self.attrs = list(set(self.attrs))
 
     def verify(self):
         """verify meta data."""
@@ -171,10 +165,6 @@ def _process(output):
             password = obj.password
             bypass = sorted(obj.bypass)
             port_bypassed = sorted(obj.port_bypass)
-            attrs = []
-            if obj.attrs:
-                attrs = sorted(obj.attrs)
-                meta.attributes(attrs)
             # meta checks
             meta.user_macs(macs)
             if not obj.inherits:
@@ -182,7 +172,7 @@ def _process(output):
             meta.bypassed(bypass)
             # use config definitions here
             if not obj.no_login:
-                store.add_user(fqdn, macs, password, attrs, port_bypassed)
+                store.add_user(fqdn, macs, password, port_bypassed)
             if bypass is not None and len(bypass) > 0:
                 for mac_bypass in bypass:
                     store.add_mac(mac_bypass, vlan)
@@ -232,7 +222,6 @@ class Store(object):
         self.vlan = "VLAN"
         self.umac = "UMAC"
         self.pwd = "PWD"
-        self.attr = "ATTR"
         self.bypass = "PORTBYPASS"
         self.mac = "MAC"
         self.audit = "AUDIT"
@@ -259,7 +248,6 @@ class Store(object):
                  username,
                  macs,
                  password,
-                 attrs,
                  port_bypass):
         """Add a user definition."""
         if username in self._users:
@@ -268,8 +256,6 @@ class Store(object):
         for m in macs:
             self._add(self.umac, username, m)
         self._add(self.pwd, username, password)
-        for a in attrs:
-            self._add(self.attr, username, attrs)
         for p in port_bypass:
             self._add(self.bypass, username, p)
 

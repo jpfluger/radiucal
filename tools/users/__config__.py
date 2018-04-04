@@ -61,7 +61,6 @@ class Assignment(object):
         self.vlan = None
         self.disable = {}
         self.no_login = False
-        self.attrs = None
         self.expires = None
         self.disabled = False
         self.inherits = None
@@ -84,7 +83,6 @@ class Assignment(object):
     def copy(self, other):
         """copy/inherit from another entity."""
         self.password = other.password
-        self.attrs = other.attrs
         self.macs = set(self.macs + other.macs)
         self.group = other.group
 
@@ -139,15 +137,6 @@ class Assignment(object):
                                 self.macs.remove(key)
                     else:
                         return self.report("invalid MAC date")
-        if self.attrs and len(self.attrs) > 0:
-            uniq_attr = []
-            for attr in self.attrs:
-                parts = attr.split("=")
-                if len(parts) != 2:
-                    return self.report("attributes must be: key=value")
-                uniq_attr.append(parts[0])
-            if len(uniq_attr) != len(set(uniq_attr)):
-                return self.report("attribute keys must be unique")
         if self.group is None:
             return self.report("no group specified")
         return True
