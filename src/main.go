@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -175,6 +176,10 @@ func mark(ctx *context, result, user, calling string) {
 }
 
 func runProxy(ctx *context) {
+	if ctx.debug {
+		log.Println("secret")
+		log.Println(ctx.secret)
+	}
 	var buffer [bSize]byte
 	for {
 		n, cliaddr, err := proxy.ReadFromUDP(buffer[0:])
@@ -220,7 +225,20 @@ func parseSecrets(secretFile string) string {
 	if !pathExists(secretFile) {
 		panic("secrets file does not exist")
 	}
-	return ""
+	f, err := os.Open(secretFile)
+	if logError("secret parsing", err) {
+		panic("unable to read file for secrets")
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		l := scanner.Text()
+		if strings.HasPrefix(l, "127.0.0.1") {
+			parts := strings.Split(l, " ")
+			return strings.TrimSpace(strings.Join(parts[1:], " "))
+		}
+	}
+	panic("unable to find shared secret entry")
 }
 
 func main() {
@@ -233,7 +251,7 @@ func main() {
 	var debug = flag.Bool("debug", false, "debug mode")
 	var pre = flag.Bool("preauth", true, "preauth checks")
 	var preLog = flag.Bool("preauth-log", true, "preauth logging")
-	//var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
+	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
 	flag.Parse()
 	if !pathExists(*db) || !pathExists(*log) {
 		panic("missing required directory")
@@ -243,6 +261,7 @@ func main() {
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
+	secret := parseSecrets(*secrets)
 	preauthing := &authmode{enabled: *pre, log: *preLog}
-	runProxy(&context{db: *db, logs: *log, debug: *debug, preauth: preauthing})
+	runProxy(&context{db: *db, logs: *log, debug: *debug, preauth: preauthing, secret: secret})
 }
