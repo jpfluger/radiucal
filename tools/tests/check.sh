@@ -8,7 +8,7 @@ rm -rf $OUT
 mkdir -p $OUT
 cp *.py $USRS
 fail=0
-python ../config_compose.py --output $OUT
+python ../netconf.py --output $OUT
 fail=$?
 cat $AUDIT_CSV | sort > $AUDIT_CSV_SORT
 mv $AUDIT_CSV_SORT $AUDIT_CSV
