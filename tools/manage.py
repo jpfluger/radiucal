@@ -339,8 +339,3 @@ def build():
     """Build and apply a user configuration."""
     env = _get_vars("/etc/environment")
     env.validate(full=True)
-    update_membership(env, run_config)
-    update_assignments(env)
-    daily_report(env, run_config)
-
-

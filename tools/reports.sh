@@ -4,6 +4,11 @@ if [ ! -e $AUDITS ]; then
     exit 0
 fi
 
+DAILY=1
+if [ ! -z "$1" ]; then
+    DAILY=$1
+fi
+
 MEMBERSHIP=${BIN}membership.md
 echo "| vlan | user |
 | ---  | --- |" > $MEMBERSHIP
@@ -15,6 +20,10 @@ echo "| user | vlan | mac |
 | --- | --- | --- |" > $ASSIGNED
 
 cat $AUDITS | sed "s/,/ | /g;s/^/| /g;s/$/ |/g" | sort -u >> $ASSIGNED
+
+if [ $DAILY -ne 1 ]; then
+    exit 0
+fi
 
 AUTHS=${BIN}auths.md
 echo "| user | mac | last |
