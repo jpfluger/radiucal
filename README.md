@@ -87,7 +87,7 @@ run (with a socket listening to be proxied to, e.g. hostapd-server)
 
 ## hostapd
 
-Information that may be useful when exploring hostapd and/or manually configuring an 802.1x server
+Information that may be useful when exploring hostapd and/or manually configuring an 802.1x server. The `hostapd-server` PKGBUILD is available in [here](https://github.com/epiphyte/pkgbuilds) to see what build settings are required
 
 ### debugging
 
