@@ -51,7 +51,7 @@ if [ -e $USERS ]; then
         diffed=$?
         if [ $diffed -ne 0 ]; then
             if [ $IS_LOCAL -eq 1 ]; then
-                echo "changes" | grep -v '"pass":'
+                echo "$changes"
                 echo
                 echo "===INFO==="
                 echo "the above summarizes the network changes you are making"
