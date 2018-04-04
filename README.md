@@ -8,8 +8,8 @@ Using a go proxy+hostapd as an 802.1x RADIUS server for network authentication (
 This is a go proxy+hostapd setup that provides a very simple configuration to manage 802.1x authentication and management on a LAN.
 
 Expectations:
-* Running on archlinux
-* hostapd can do a lot with EAP and RADIUS, this should serve as an exploration of these features
+* Running on archlinux as a host/server
+* hostapd can do a lot with EAP and RADIUS as a service, this should serve as an exploration of these features
 * Fully replace freeradius for 802.1x/AAA/etc.
 
 # requirements
@@ -43,13 +43,35 @@ install from the epiphyte [repository](https://mirror.epiphyte.network/repos)
 pacman -S hostapd-server radiucal radicual-tools
 ```
 
+setup your `/etc/hostapd/hostapd.conf`
+```
+systemctl enable --now hostapd.service
+```
+
+if using radiucal (make sure to bind hostapd to not 1812 for radius)
+```
+systemctl enable --now radiucal.service
+```
+
+if you wish to use radiucal-tools to generate certs
+```
+cd /etc/hostapd/radiucal/certs
+./renew.sh
+```
+and follow the prompts
+
 # components
 
 ## radiucal
 
 radiucal is a go proxy that receives UDP packets and routes them along (namely to hostapd/another radius server)
 
-### build
+the proxy:
+* provides a preauth user+mac filter check
+* logs preauth success/failure
+* provides a cut-in for debugging
+
+### build (dev)
 
 clone this repository
 ```
@@ -65,9 +87,9 @@ run (with a socket listening to be proxied to, e.g. hostapd-server)
 
 ## hostapd
 
-Information that may be useful when exploring hostapd
+Information that may be useful when exploring hostapd and/or manually configuring an 802.1x server
 
-###
+### debugging
 
 this is documented but to to see debug output
 ```
@@ -88,10 +110,14 @@ the doc mentions it but the only examples easy to find were in the hostapd tests
 # allow this user with an attribute
 "user" MSCHAPV2 "password1" [2]
 radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:2
 
 # and this one with another
 "user2" MSCHAPV2 "password1" [2]
-radius_accept_attr=64:d:14
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:d:1
 ```
 
 #### MAB
@@ -107,6 +133,18 @@ tools to:
 * report from radiucal
 * help setup hostapd
 * manage radiucal/hostapd settings
+
+### certs
+
+please see above but a cert generation setup is installed in the etc area for hostapd
+
+### radiucal-compose
+
+takes pythonic definitions of users and produces an `eap_users` file that hostapd can use
+
+### radiucal-report
+
+regenerates the composed `eap_users` and provides reports around this information
 
 ## connecting
 
