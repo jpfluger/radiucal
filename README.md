@@ -70,6 +70,7 @@ the proxy:
 * provides a preauth user+mac filter check
 * logs preauth success/failure
 * provides a cut-in for debugging
+* overrides the concept of "radius_clients" as all will have to have a single shared secret
 
 ### build (dev)
 

@@ -39,6 +39,7 @@ type context struct {
 	db      string
 	debug   bool
 	preauth *authmode
+	secret  string
 }
 
 type connection struct {
@@ -58,7 +59,7 @@ func logError(message string, err error) bool {
 func newConnection(srv, cli *net.UDPAddr) *connection {
 	conn := new(connection)
 	conn.client = cli
-	srvudp, err := DialUDP("udp", srv)
+	srvudp, err := net.DialUDP("udp", nil, srv)
 	if logError("dial udp", err) {
 		return nil
 	}
@@ -71,7 +72,7 @@ func setup(hostport string, port int) error {
 	if err != nil {
 		return err
 	}
-	pudp, err := ListenUDP("udp", saddr)
+	pudp, err := net.ListenUDP("udp", saddr)
 	if err != nil {
 		return err
 	}
@@ -107,7 +108,7 @@ func clean(in string) string {
 }
 
 func preauth(b string, ctx *context) error {
-	p, err := radius.Parse([]byte(b), []byte(""))
+	p, err := radius.Parse([]byte(b), []byte(ctx.secret))
 	if err != nil {
 		// we can either parse or not understand
 		// if we don't understand there is nothing to look at anyway
@@ -176,7 +177,7 @@ func mark(ctx *context, result, user, calling string) {
 func runProxy(ctx *context) {
 	var buffer [bSize]byte
 	for {
-		n, cliaddr, _, err := ReadFromUDPConn(proxy, buffer[0:])
+		n, cliaddr, err := proxy.ReadFromUDP(buffer[0:])
 		if logError("read from udp", err) {
 			continue
 		}
@@ -215,6 +216,13 @@ func pathExists(path string) bool {
 	}
 }
 
+func parseSecrets(secretFile string) string {
+	if !pathExists(secretFile) {
+		panic("secrets file does not exist")
+	}
+	return ""
+}
+
 func main() {
 	log.SetFlags(0)
 	var from = flag.Int("from", 1812, "Proxy (from) port")
@@ -225,6 +233,7 @@ func main() {
 	var debug = flag.Bool("debug", false, "debug mode")
 	var pre = flag.Bool("preauth", true, "preauth checks")
 	var preLog = flag.Bool("preauth-log", true, "preauth logging")
+	//var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
 	flag.Parse()
 	if !pathExists(*db) || !pathExists(*log) {
 		panic("missing required directory")
