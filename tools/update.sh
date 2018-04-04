@@ -84,6 +84,7 @@ if [ $diffed -ne 0 ]; then
         _update_files
         cp $USERS $RADIUCAL_HOME/eap_users
         kill -HUP $(pidof hostapd)
+        exit 0
         # run local reports
         if [ -e "./reports" ]; then
             ./reports
