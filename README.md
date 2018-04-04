@@ -48,6 +48,8 @@ adminstrative machines should install
 pacman -S radiucual-utils
 ```
 
+## services
+
 setup your `/etc/hostapd/hostapd.conf`
 ```
 systemctl enable --now hostapd.service
@@ -57,6 +59,8 @@ if using radiucal (make sure to bind hostapd to not 1812 for radius)
 ```
 systemctl enable --now radiucal.service
 ```
+
+## setup/notes
 
 if you wish to use radiucal-tools to generate certs
 ```
