@@ -196,7 +196,8 @@ def _process(output):
             f.write('"{}" MSCHAPV2 hash:{} [2]\n'.format(u[0], u[1]))
             write_vlan(f, u[2])
         for u in store.get_eap_mab():
-            f.write('"{}" MACACL "{}"\n'.format(u[0], u[0]))
+            up = u[0].upper()
+            f.write('"{}" MACACL "{}"\n'.format(up, up))
             write_vlan(f, u[1])
             manifest.append((u[0], u[0]))
     for u in store.get_tag(store.umac):
