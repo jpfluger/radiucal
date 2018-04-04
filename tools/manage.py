@@ -6,7 +6,6 @@ import shutil
 import hashlib
 import json
 import subprocess
-import wrapper
 import random
 import string
 import filecmp
@@ -23,9 +22,7 @@ CHARS = string.ascii_uppercase + string.ascii_lowercase + string.digits
 
 # arguments
 CHECK = "check"
-ADD_USER = "useradd"
 BUILD = "build"
-GEN_PSWD = "password"
 
 # file handling
 FILE_NAME = wrapper.CONFIG_NAME
@@ -126,17 +123,6 @@ def _get_vars(env_file):
     return result
 
 
-def get_not_cruft(users):
-    """Not-cruft users."""
-    not_cruft = []
-    for flag in ["nocruft", "secondary"]:
-        attrs = get_user_attr(users, flag)
-        for u in attrs:
-            if attrs[u] == "1":
-                not_cruft.append(u)
-    return not_cruft
-
-
 def get_file_hash(file_name):
     """Get a sha256 hash of a file."""
     with open(file_name, 'rb') as f:
@@ -185,54 +171,6 @@ def compose(env):
                    "--audit",
                    os.path.join(here, AUDIT)]
     call(composition, "compose configuration", working_dir=offset)
-
-
-def gen_pass(dump, key):
-    """Generate password for a user account."""
-    if key is None:
-        print("no key available")
-        exit(1)
-    rands = ''.join(random.choice(CHARS) for _ in range(64))
-    encoded = wrapper.encrypt(rands, key)
-    raw = wrapper.decrypt(encoded, key)
-    if rands != raw:
-        print("encrypt/decrypt problem")
-        exit(1)
-    if dump:
-        print("password:")
-        print(raw)
-        print("config file encoded")
-        print(encoded)
-    else:
-        return (raw, encoded)
-
-
-def add_user(key):
-    """Add a new user definition."""
-    print("please enter the user name:")
-    named = input()
-    print("please enter the phabricator name to alias (blank to skip)")
-    aliased = input()
-    alias = ""
-    if aliased is not None and len(aliased) > 0:
-        alias = "u_obj.attrs = [common.ALIASED + '{}']".format(aliased)
-    passes = gen_pass(False, key)
-    raw = passes[0]
-    password = passes[1]
-    user_definition = """
-import users.__config__ as __config__
-import users.common as common
-
-u_obj = __config__.Assignment()
-u_obj.password = '{}'
-u_obj.vlan = None
-u_obj.group = None
-u_obj.macs = None
-{}
-""".format(password, alias)
-    with open(os.path.join(USER_FOLDER, "user_" + named + ".py"), 'w') as f:
-        f.write(user_definition.strip())
-    print("{} was created with a password of {}".format(named, raw))
 
 
 def get_report_data(env, name):
@@ -608,7 +546,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('action',
                         nargs='?',
-                        choices=[CHECK, ADD_USER, BUILD, GEN_PSWD],
+                        choices=[CHECK, BUILD],
                         default=CHECK)
     parser.add_argument('--key', type=str)
     args = parser.parse_args()
@@ -623,10 +561,6 @@ def main():
         except Exception as e:
             _smirc("build error")
             print(str(e))
-    elif args.action == ADD_USER:
-        add_user(key)
-    elif args.action == GEN_PSWD:
-        gen_pass(True, key)
 
 
 if __name__ == "__main__":
