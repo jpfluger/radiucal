@@ -4,5 +4,5 @@ Description=radiucal network configuration updates application
 [Service]
 Type=oneshot
 WorkingDirectory=/var/lib/radiucal/netconf
-ExecStart=make
+ExecStart=/usr/bin/make
 KillMode=none
