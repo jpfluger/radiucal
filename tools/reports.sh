@@ -4,8 +4,28 @@ if [ ! -e $AUDITS ]; then
     exit 0
 fi
 
+source /etc/environment
+if [ -z "$RPT_HOST" ]; then
+    echo "missing RPT_HOST var"
+    exit 1
+fi
+
+if [ -z "$RPT_TOKEN" ]; then
+    echo "missing RPT_TOKEN var"
+    exit 1
+fi
+
+_post() {
+    for f in $(ls $BIN | grep "\.md"); do
+        content=$(cat $BIN/$f | python -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read()))")
+        name=$(echo "$f" | cut -d "." -f 1)
+        curl -s -k -X POST -d "name=$name&content=$content" "$RPT_HOST/reports/upload?session=$RPT_TOKEN"
+    done
+}
+
 DAILY=1
 if [ ! -z "$1" ]; then
+    _post
     DAILY=$1
 fi
 
@@ -62,4 +82,4 @@ if [ ! -z "$files" ]; then
     notcruft=$(echo "$notcruft" | sed "s/^|//g")
     cat $AUDITS | sed "s/,/ /g" | awk '{print $2,".",$1}' | sed "s/ //g" | uniq | grep -v -E "($notcruft)" | sed "s/^/drop: /g" | sort -u | smirc
 fi
-
+_post
