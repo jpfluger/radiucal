@@ -87,6 +87,35 @@ if [ ! -z "$files" ]; then
 fi
 
 # Leases
+LEASES=${BIN}leases.md
+echo "| mac | ip |
+| --- | --- |" > $LEASES
+unknowns=""
 leases=$(curl -s -k "$RPT_HOST/reports/view/dns?raw=true")
+for l in $(echo "$leases"); do
+    t=$(echo $l | cut -d "," -f 1)
+    if [[ "$t" == "static" ]]; then
+        continue
+    fi
+    ip=$(echo $l | cut -d "," -f 3)
+    mac=$(echo $l | cut -d "," -f 2 | tr '[:upper:]' '[:lower:]' | sed "s/://g")
+    if [ ! -z "$LEASE_MGMT" ]; then
+        echo "$ip" | grep -q "$LEASE_MGMT"
+        if [ $? -eq 0 ]; then
+            continue
+        fi
+    fi
+    cat $AUDITS | grep -q "$mac"
+    if [ $? -eq 0 ]; then
+        continue
+    fi
+    unknowns="$unknowns $mac ($ip)"
+    echo "| $mac | $ip |" >> $LEASES
+done
+if [ -z "$unknowns" ]; then
+    echo "| n/a | n/a |" >> $LEASES
+else
+    echo "unknown leases: $unknowns" | smirc
+fi
 
 _post
