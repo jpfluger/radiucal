@@ -3,37 +3,18 @@
 import argparse
 import os
 import shutil
-import hashlib
 import json
 import subprocess
 import random
 import string
-import filecmp
-import pwd
 import urllib.parse
 import urllib.request
 import datetime
 import ssl
 
-REPORTING_HOUR = 4
-
-# user setup
-CHARS = string.ascii_uppercase + string.ascii_lowercase + string.digits
-
-# arguments
-CHECK = "check"
-BUILD = "build"
-
-# file handling
-FILE_NAME = wrapper.CONFIG_NAME
-PREV_FILE = FILE_NAME + ".prev"
-AUDIT = "audit.csv"
 USER_FOLDER = "users/"
-PYTHON_MODS = "mods-config/python"
 
 # env vars
-FREERADIUS_REPO = "FREERADIUS_REPO"
-NETCONFIG = "NETCONF"
 LOG_FILES = "LOG_FILES"
 WORK_DIR = "WORKING_DIR"
 FLAG_MGMT_LEASE = "LEASE_MGMT"
@@ -47,9 +28,7 @@ class Env(object):
 
     def __init__(self):
         """Init the instance."""
-        self.freeradius_repo = None
         self.backing = {}
-        self.net_config = None
         self.log_files = None
         self.working_dir = None
         self.mgmt_ips = None
@@ -60,11 +39,7 @@ class Env(object):
     def add(self, key, value):
         """Add a key, sets into environment."""
         os.environ[key] = value
-        if key == FREERADIUS_REPO:
-            self.freeradius_repo = value
-        elif key == NETCONFIG:
-            self.net_config = value
-        elif key == LOG_FILES:
+        if key == LOG_FILES:
             self.log_files = value
         elif key == WORK_DIR:
             self.working_dir = value
@@ -92,9 +67,7 @@ class Env(object):
     def validate(self, full=False):
         """Validate the environment setup."""
         errors = 0
-        errors += self._in_error(FREERADIUS_REPO, self.freeradius_repo)
         if full:
-            errors += self._in_error(NETCONFIG, self.net_config)
             errors += self._in_error(LOG_FILES, self.log_files)
             errors += self._in_error(WORK_DIR, self.working_dir)
             errors += self._in_error(FLAG_MGMT_LEASE, self.mgmt_ips)
@@ -123,18 +96,6 @@ def _get_vars(env_file):
     return result
 
 
-def get_file_hash(file_name):
-    """Get a sha256 hash of a file."""
-    with open(file_name, 'rb') as f:
-        sha = hashlib.sha256(f.read())
-        return sha.hexdigest()
-
-
-def _get_exclude(name):
-    """Define an rsync exclude."""
-    return '--exclude={}'.format(name)
-
-
 def call(cmd, error_text, working_dir=None):
     """Call for subproces/ing."""
     p = subprocess.Popen(cmd, cwd=working_dir)
@@ -148,29 +109,6 @@ def call(cmd, error_text, working_dir=None):
 def _get_utils(env):
     """Get utils location."""
     return os.path.join(env.freeradius_repo, PYTHON_MODS, "utils")
-
-
-def compose(env):
-    """Compose the configuration."""
-    offset = _get_utils(env)
-    rsync = ["rsync",
-             "-aczv",
-             USER_FOLDER,
-             os.path.join(offset, USER_FOLDER),
-             "--delete-after",
-             _get_exclude("*.pyc"),
-             _get_exclude("README.md"),
-             _get_exclude("__init__.py"),
-             _get_exclude("__config__.py")]
-    call(rsync, "rsync user definitions")
-    here = os.getcwd()
-    composition = ["python",
-                   "config_compose.py",
-                   "--output",
-                   os.path.join(here, FILE_NAME),
-                   "--audit",
-                   os.path.join(here, AUDIT)]
-    call(composition, "compose configuration", working_dir=offset)
 
 
 def get_report_data(env, name):
@@ -201,32 +139,6 @@ def post_content(env, page, content):
     data = {"name": page, "content": content}
     payload = urllib.parse.urlencode(data)
     make_report_req(env, report_url, payload.encode("utf-8"))
-
-
-def get_user_attr(user, key):
-    """Get user attributes."""
-    attributes = {}
-    for u in user:
-        attrs = [x for x in user[u][wrapper.ATTR] if x.startswith(key + "=")]
-        if len(attrs) == 1:
-            attributes[u] = attrs[0].split("=")[1]
-    return attributes
-
-
-def get_user_resolutions(user):
-    """Get user resolutions."""
-    return get_user_attr(user, "alias")
-
-
-def resolve_user(user_name, user_resolutions):
-    """Resolve user names."""
-    user = user_name
-    if user in user_resolutions:
-        user = user_resolutions[user]
-    else:
-        user = user_name.split(".")[1]
-    return "[@{}](/p/{})".format(user, user)
-
 
 def update_assignments(env):
     """Update assignments report."""
@@ -392,21 +304,6 @@ def _create_lease_table(env, leases, unknowns, statics, header, filter_fxn):
     return content
 
 
-def _smirc(text):
-    """Sending via smirc."""
-    try:
-        import smirc
-    except ImportError as e:
-        print(text)
-        return
-    print("smirc: {}".format(text))
-    try:
-        smirc.run(arguments=[text])
-    except smirc.SMIRCError as e:
-        print("smirc error")
-        print(str(e))
-
-
 def _get_date_offset(days):
     """Create a date-offset with formatting."""
     return (datetime.date.today() -
@@ -429,19 +326,6 @@ def daily_report(env, running_config):
     today = datetime.datetime.now()
     hour = today.hour
     report_indicator = env.working_dir + "indicator"
-    if hour != REPORTING_HOUR:
-        delete_if_exists(report_indicator)
-        return
-    if os.path.exists(report_indicator):
-        return
-    print('SIGHUP radius')
-    radius_pid = "/var/run/radiusd/radiusd.pid"
-    pid = None
-    if os.path.exists(radius_pid):
-        with open(radius_pid) as f:
-            pid = "".join(f.readlines()).strip()
-    if pid is not None:
-        call(['kill', '-9', pid], 'sighup radius')
     print('completing daily reports')
     with open(report_indicator, 'w') as f:
         f.write("")
@@ -498,69 +382,13 @@ def build():
     """Build and apply a user configuration."""
     env = _get_vars("/etc/environment")
     env.validate(full=True)
-    os.chdir(env.net_config)
-    compose(env)
-    new_config = os.path.join(env.net_config, FILE_NAME)
-    run_config = os.path.join(env.freeradius_repo, PYTHON_MODS, FILE_NAME)
-    diff = filecmp.cmp(new_config, run_config)
-    if not diff:
-        print('change detected')
-        shutil.copyfile(run_config, run_config + ".prev")
-        shutil.copyfile(new_config, run_config)
-        u = pwd.getpwnam("radiusd")
-        os.chown(run_config, u.pw_uid, u.pw_gid)
-        update_membership(env, run_config)
-        update_assignments(env)
-        hashed = get_file_hash(FILE_NAME)
-        git = "latest commit"
-        git_indicator = env.working_dir + "git"
-        if os.path.exists(git_indicator):
-            with open(git_indicator, 'r') as f:
-                git = f.read().strip()
-        status = "ready"
-        _smirc("{} -> {} ({})".format(status, git, hashed))
+    update_membership(env, run_config)
+    update_assignments(env)
     daily_report(env, run_config)
-
-
-def check():
-    """Check composition."""
-    env = _get_vars("$HOME/.config/epiphyte/env")
-    if os.path.exists(FILE_NAME):
-        shutil.copyfile(FILE_NAME, PREV_FILE)
-    compose(env)
-    if os.path.exists(FILE_NAME):
-        print(get_file_hash(FILE_NAME))
-        output = None
-        with open(FILE_NAME, 'r') as f:
-            j = json.loads(f.read())
-            output = json.dumps(j,
-                                sort_keys=True,
-                                indent=4,
-                                separators=(',', ': '))
-        with open(FILE_NAME, 'w') as f:
-            f.write(output)
 
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('action',
-                        nargs='?',
-                        choices=[CHECK, BUILD],
-                        default=CHECK)
-    parser.add_argument('--key', type=str)
-    args = parser.parse_args()
-    key = None
-    if args.key:
-        key = wrapper.convert_key(args.key)
-    if args.action == CHECK:
-        check()
-    elif args.action == BUILD:
-        try:
-            build()
-        except Exception as e:
-            _smirc("build error")
-            print(str(e))
 
 
 if __name__ == "__main__":
