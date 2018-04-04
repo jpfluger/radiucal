@@ -37,7 +37,7 @@ if [ ! -z "$files" ]; then
             | sed "s/ /,/g" | sort -u)
     for u in $(echo "$users"); do
         for f in $(echo "$files"); do
-            has=$(cat $f | sed "s/ /,/g" | grep "$u" | head -n 1)
+            has=$(tac $f | sed "s/ /,/g" | grep "$u" | head -n 1)
             if [ ! -z "$has" ]; then
                 day=$(basename $f | cut -d "." -f 3)
                 stat=$(echo $has | cut -d "," -f 2 | sed "s/\[//g;s/\]//g")
