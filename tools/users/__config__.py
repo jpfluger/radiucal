@@ -3,21 +3,23 @@
 from datetime import datetime
 import re
 
+
 def is_valid_mac(possible_mac):
-  """check if an object is a mac."""
-  valid = False
-  if len(possible_mac) == 12:
-    valid = True
-    for c in possible_mac:
-      if c not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']:
-        valid = False
-        break
-  return valid
+    """check if an object is a mac."""
+    valid = False
+    if len(possible_mac) == 12:
+        valid = True
+        for c in possible_mac:
+            if c not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                         'a', 'b', 'c', 'd', 'e', 'f']:
+                valid = False
+                break
+    return valid
 
 
 def is_mac(value, category=None):
     """validate if something appears to be a mac."""
-    valid = is_valid_mac(value) 
+    valid = is_valid_mac(value)
     if not valid:
         cat = ''
         if category is not None:
@@ -50,7 +52,9 @@ class VLAN(object):
 
 class Assignment(object):
     """assignment object."""
+
     def __init__(self):
+        """Init the instance."""
         self.macs = []
         self.password = ""
         self.bypass = []
@@ -109,7 +113,7 @@ class Assignment(object):
         if self.bypass is not None and len(self.bypass) > 0:
             for mac in self.bypass:
                 if not is_mac(mac, category='bypass'):
-                    return False 
+                    return False
         if self.port_bypass is not None and len(self.port_bypass):
             already_set = self.macs
             if self.bypass is not None:

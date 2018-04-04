@@ -1,3 +1,5 @@
+"""pwd user."""
+
 import users.__config__ as __config__
 import users.common as common
 normal = __config__.Assignment()

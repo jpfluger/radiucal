@@ -1,4 +1,4 @@
-SRC=$(shell find . -type f | grep "\.py$$" | grep -v -E "(users|tests)\/")
+SRC=$(shell find . -type f | grep "\.py$$" | grep -v "\_\_init\_\_.py")
 .PHONY: tests
 all: tests analyze
 
