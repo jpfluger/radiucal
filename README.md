@@ -160,9 +160,6 @@ please see above but a cert generation setup is installed in the etc area for ho
 ## radiucal-bootstrap
 
 part of both utils and tools, radiucal-bootstrap is used to manage the network configuration (netconf)
-
-### features
-
 * takes pythonic definitions of users and produces an `eap_users` file that hostapd can use
 * outputs report information regarding the current state of the configuration
 * provides ability to create users/passwords for network access
