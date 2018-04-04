@@ -141,6 +141,11 @@ To perform mac-bypass for a mac
 "001122334455" MACACL "001122334455"
 ```
 
+## radiucal-utils
+
+tools to:
+* provide adminstrative management (subset of radiucal-tools)
+
 ## radiucal-tools
 
 tools to:
@@ -148,22 +153,20 @@ tools to:
 * help setup hostapd
 * manage radiucal/hostapd settings
 
-## radiucal-utils
-
-tools to:
-* provide adminstrative management (subset of radiucal-tools)
-
 ### certs
 
 please see above but a cert generation setup is installed in the etc area for hostapd
 
-### radiucal-compose
+## radiucal-bootstrap
 
-takes pythonic definitions of users and produces an `eap_users` file that hostapd can use
+part of both utils and tools, radiucal-bootstrap is used to manage the network configuration (netconf)
 
-### radiucal-report
+### features
 
-regenerates the composed `eap_users` and provides reports around this information
+* takes pythonic definitions of users and produces an `eap_users` file that hostapd can use
+* outputs report information regarding the current state of the configuration
+* provides ability to create users/passwords for network access
+* outputs auth attempt information
 
 ## connecting
 
