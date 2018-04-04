@@ -41,6 +41,7 @@ for d in $(echo "$dates"); do
 	fi
 done
 if [ ! -z "$files" ]; then
+    notcruft=""
     users=$(cat $files \
             | cut -d " " -f 3,4 \
             | sed "s/ /,/g" | sort -u)
@@ -51,11 +52,14 @@ if [ ! -z "$files" ]; then
                 day=$(basename $f | cut -d "." -f 3)
                 stat=$(echo $has | cut -d "," -f 2 | sed "s/\[//g;s/\]//g")
                 usr=$(echo $u | cut -d "," -f 1)
+                notcruft="$notcruft|$usr"
                 mac=$(echo $u | cut -d "," -f 2 | sed "s/(//g;s/)//g")
                 echo "| $usr | $mac | $stat ($day) |" >> $AUTHS
                 break
             fi
         done
     done
+    notcruft=$(echo "$notcruft" | sed "s/^|//g")
+    cat $AUDITS | sed "s/,/ /g" | awk '{print $2,".",$1}' | sed "s/ //g" | uniq | grep -v -E "($notcruft)" | sed "s/^/drop: /g"
 fi
 
