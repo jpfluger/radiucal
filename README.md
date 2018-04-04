@@ -43,6 +43,11 @@ install from the epiphyte [repository](https://mirror.epiphyte.network/repos)
 pacman -S hostapd-server radiucal radicual-tools
 ```
 
+adminstrative machines should install
+```
+pacman -S radiucual-utils
+```
+
 setup your `/etc/hostapd/hostapd.conf`
 ```
 systemctl enable --now hostapd.service
@@ -138,6 +143,11 @@ tools to:
 * report from radiucal
 * help setup hostapd
 * manage radiucal/hostapd settings
+
+## radiucal-utils
+
+tools to:
+* provide adminstrative management (subset of radiucal-tools)
 
 ### certs
 
