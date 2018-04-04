@@ -11,6 +11,12 @@ import urllib.parse
 import urllib.request
 import datetime
 import ssl
+import datetime as dt
+import argparse
+import json
+import wrapper
+import os
+
 
 USER_FOLDER = "users/"
 
@@ -139,6 +145,7 @@ def post_content(env, page, content):
     data = {"name": page, "content": content}
     payload = urllib.parse.urlencode(data)
     make_report_req(env, report_url, payload.encode("utf-8"))
+
 
 def update_assignments(env):
     """Update assignments report."""
@@ -386,12 +393,6 @@ def build():
     update_assignments(env)
     daily_report(env, run_config)
 
-
-import datetime as dt
-import argparse
-import json
-import wrapper
-import os
 
 _KEY = "->"
 _NA = "n/a"
