@@ -4,6 +4,6 @@ if [ ! -d "$PWD/users" ]; then
     exit 1
 fi
 DIR=/usr/share/radiucal/
-for f in $(echo "config_compose users/__config__ users/__init__"); do
+for f in $(echo "config_compose new_user users/__config__ users/__init__"); do
     cp $DIR/$f.py $PWD/$f.py
 done
