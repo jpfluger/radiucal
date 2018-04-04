@@ -60,6 +60,6 @@ if [ ! -z "$files" ]; then
         done
     done
     notcruft=$(echo "$notcruft" | sed "s/^|//g")
-    cat $AUDITS | sed "s/,/ /g" | awk '{print $2,".",$1}' | sed "s/ //g" | uniq | grep -v -E "($notcruft)" | sed "s/^/drop: /g"
+    cat $AUDITS | sed "s/,/ /g" | awk '{print $2,".",$1}' | sed "s/ //g" | uniq | grep -v -E "($notcruft)" | sed "s/^/drop: /g" | sort -u | smirc
 fi
 

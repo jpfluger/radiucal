@@ -102,21 +102,6 @@ def _get_vars(env_file):
     return result
 
 
-def call(cmd, error_text, working_dir=None):
-    """Call for subproces/ing."""
-    p = subprocess.Popen(cmd, cwd=working_dir)
-    p.wait()
-    if p.returncode != 0:
-        _smirc("radius call failed")
-        print("unable to {}".format(error_text))
-        exit(1)
-
-
-def _get_utils(env):
-    """Get utils location."""
-    return os.path.join(env.freeradius_repo, PYTHON_MODS, "utils")
-
-
 def get_report_data(env, name):
     """GET or POST report data."""
     report_url = "{}/reports/view/{}?raw=true".format(env.rpt_host, name)
@@ -276,63 +261,6 @@ def delete_if_exists(file_name):
 def _create_header():
     """Create a report header."""
     return ""
-
-
-def daily_report(env, running_config):
-    """Write daily reports."""
-    today = datetime.datetime.now()
-    hour = today.hour
-    report_indicator = env.working_dir + "indicator"
-    print('completing daily reports')
-    with open(report_indicator, 'w') as f:
-        f.write("")
-    output = env.working_dir + "auths.md"
-    call(["python", "auths.py", "--output", output],
-         "report authorizations",
-         working_dir=_get_utils(env))
-    auths = None
-    optimized = {}
-    conf = None
-    with open(running_config, 'r') as f:
-        conf = json.loads(f.read())[wrapper.USERS]
-    not_cruft = get_not_cruft(conf)
-    _is_na = "n/a"
-    with open(output) as f:
-        lines = []
-        skip = 0
-        for l in f:
-            new_line = l
-            if skip >= 2:
-                parts = l.split("|")
-                user = parts[1].strip()
-                res = parts[3]
-                if user not in optimized:
-                    optimized[user] = False
-                if _is_na in res:
-                    if user not in not_cruft:
-                        adj = []
-                        for x in parts:
-                            if len(x.strip()) == 0:
-                                adj.append(x)
-                            else:
-                                cruft_mark = x.replace(_is_na,
-                                                       _is_na + " (cruft)")
-                                adj.append("**{}**".format(cruft_mark))
-                        new_line = "|".join(adj)
-                else:
-                    optimized[user] = True
-            lines.append(new_line)
-            skip += 1
-        auths = "".join(lines)
-    post_content(env, "auths", _create_header() + auths)
-    update_leases(env, conf)
-    suggestions = []
-    for u in optimized:
-        if not optimized[u]:
-            if u not in not_cruft:
-                suggestions.append("drop user {}".format(u))
-    if len(suggestions) > 0:
-        _smirc("\n".join(sorted(suggestions)))
 
 
 def build():
