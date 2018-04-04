@@ -8,6 +8,6 @@ for s in $(echo "configure monitor reports"); do
     cp $DIR/$s.sh $s
     chmod u+x $s
 done
-for f in $(echo "netconf users users/__config__ users/__init__"); do
+for f in $(echo "netconf accounts users/__config__ users/__init__"); do
     cp $DIR/$f.py $PWD/$f.py
 done
