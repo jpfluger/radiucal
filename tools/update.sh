@@ -84,6 +84,7 @@ if [ $diffed -ne 0 ]; then
         git log --pretty=oneline --abbrev-commit -n 1 | smirc
         _update_files
         cp $USERS $RADIUCAL_HOME/eap_users
+        echo "sighup hostapd"
         kill -HUP $(pidof hostapd)
         exit 0
         # run local reports
