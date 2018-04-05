@@ -25,17 +25,13 @@ done
 BIN=bin/
 mkdir -p $BIN
 USERS=${BIN}eap_users
-PREV=${USERS}.prev
-if [ -e $USERS ]; then
-    cp $USERS $PREV
+HASH=${BIN}last
+PREV=${HASH}.prev
+if [ -e $HASH ]; then
+    cp $HASH $PREV
 fi
 
-radiucal-bootstrap
-if [ $? -ne 0 ]; then
-    echo "unable to bootstrap (radiucal-utils|tools installed?)"
-    exit 1
-fi
-
+cat users/user_* | sha256sum | cut -d " " -f 1 > $HASH 
 if [ $IS_LOCAL -eq 0 ]; then
     ./monitor
     daily=${IS_DAILY}.radius-$(date +%Y-%m-%d)
@@ -51,20 +47,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 diffed=1
-if [ -e $USERS ]; then
+if [ -e $HASH ]; then
     if [ -e $PREV ]; then
-        changes=$(diff -u $PREV $USERS)
+        diff -u $PREV $HASH > /dev/null
         diffed=$?
-        if [ $diffed -ne 0 ]; then
-            if [ $IS_LOCAL -eq 1 ]; then
-                echo "$changes"
-                echo
-                echo "===INFO==="
-                echo "the above summarizes the network changes you are making"
-                echo "===INFO==="
-                echo
-            fi
-        fi
     fi
 fi
 
