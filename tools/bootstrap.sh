@@ -5,6 +5,7 @@ if [ ! -d "$PWD/users" ]; then
 fi
 DIR=/usr/share/radiucal/
 for s in $(echo "configure monitor reports"); do
+    rm -f $s
     p=$DIR/$s.sh
     if [ -e $p ]; then
         cp $DIR/$s.sh $s
@@ -12,5 +13,6 @@ for s in $(echo "configure monitor reports"); do
     fi
 done
 for f in $(echo "netconf accounts users/__config__ users/__init__"); do
+    rm -f $f
     cp $DIR/$f.py $PWD/$f.py
 done
