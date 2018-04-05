@@ -197,7 +197,7 @@ def _process(output):
             write_vlan(f, u[2])
         for u in store.get_eap_mab():
             up = u[0].upper()
-            f.write('"{}" MACACL "{}"\n'.format(up, up))
+            f.write('"{}" MD5 "{}"\n'.format(up, up))
             write_vlan(f, u[1])
             manifest.append((u[0], u[0]))
     for u in store.get_tag(store.umac):

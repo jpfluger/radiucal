@@ -61,7 +61,7 @@ radius_accept_attr=64:d:13
 radius_accept_attr=65:d:6
 radius_accept_attr=81:s:10
 
-"112233445566" MACACL "112233445566"
+"112233445566" MD5 "112233445566"
 radius_accept_attr=64:d:13
 radius_accept_attr=65:d:6
 radius_accept_attr=81:s:10
