@@ -75,15 +75,29 @@ _update_files() {
     done
 }
 
+_sig() {
+    echo "signal applications"
+    kill -HUP $(pidof hostapd)
+    kill -2 $(pidof radiucal)
+}
+
+if [ $IS_LOCAL -eq 0 ]; then
+    conf_check=/var/lib/radiucal/configure.
+    check=$conf_check$(date +%Y-%m-%d)
+    if [ ! -e $check ]; then
+        rm -f ${conf_check}*
+        _sig
+        touch $check
+    fi
+fi
+
 if [ $diffed -ne 0 ]; then
     echo "network configuration updated"
     if [ $IS_LOCAL -eq 0 ]; then
         git log --pretty=oneline --abbrev-commit -n 1 | smirc
         _update_files
         cp $USERS $RADIUCAL_HOME/eap_users
-        echo "sighup hostapd"
-        kill -HUP $(pidof hostapd)
-        kill -2 $(pidof radiucal)
+        _sig
         # run local reports
         if [ -e "./reports" ]; then
             ./local-reports $IS_LOCAL
