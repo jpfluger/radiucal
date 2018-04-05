@@ -92,7 +92,7 @@ echo "| mac | ip |
 | --- | --- |" > $LEASES
 unknowns=""
 leases=$(curl -s -k "$RPT_HOST/reports/view/dns?raw=true")
-for l in $(echo "$leases"); do
+for l in $(echo "$leases" | sed "s/ /,/g"); do
     t=$(echo $l | cut -d "," -f 1)
     if [[ "$t" == "static" ]]; then
         continue
