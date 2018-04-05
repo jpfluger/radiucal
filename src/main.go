@@ -275,6 +275,9 @@ func runProxy(ctx *context) {
 			audit := string(buffer[:n])
 			err = preauth(audit, ctx)
 			if err != nil {
+				if ctx.debug {
+					log.Println(err)
+				}
 				continue
 			}
 		}
@@ -328,14 +331,14 @@ func main() {
 	var to = flag.Int("to", 1814, "Server (to) port")
 	var host = flag.String("host", "localhost", "Server address")
 	var db = flag.String("db", lib+"users/", "user.mac directory")
-	var log = flag.String("log", lib+"log/", "audit logging")
+	var logDir = flag.String("log", lib+"log/", "audit logging")
 	var debug = flag.Bool("debug", false, "debug mode")
 	var pre = flag.Bool("preauth", true, "preauth checks")
 	var preLog = flag.Bool("preauth-log", true, "preauth logging")
 	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
 	var audit = flag.Bool("audit", false, "dump auth requests for auditing")
 	flag.Parse()
-	if !pathExists(*db) || !pathExists(*log) {
+	if !pathExists(*db) || !pathExists(*logDir) {
 		panic("missing required directory")
 	}
 	addr := fmt.Sprintf("%s:%d", *host, *to)
@@ -345,11 +348,14 @@ func main() {
 	}
 	secret := parseSecrets(*secrets)
 	preauthing := &authmode{enabled: *pre, log: *preLog}
-	ctx := &context{db: *db, logs: *log, debug: *debug, preauth: preauthing, secret: secret, audit: *audit}
+	ctx := &context{db: *db, logs: *logDir, debug: *debug, preauth: preauthing, secret: secret, audit: *audit}
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		reload(ctx)
+		for sig := range c {
+			log.Println("captured %v", sig)
+			reload(ctx)
+		}
 	}()
 	runProxy(ctx)
 }
