@@ -16,6 +16,5 @@ LOG=${LIB}log/radiucal.audit.$DATE
 if [ -e $LOG ]; then
     lines=$(cat $LOG | wc -l)
     cat $LOG | tail -n +$((SRT_LINE+1)) | cut -d " " -f 2- | uniq | smirc --private
-    cat $LOG | tail -n +$((SRT_LINE+1)) | grep "ERROR" | uniq | smirc 
     echo "$lines" > $LAST
 fi
