@@ -83,6 +83,7 @@ if [ $diffed -ne 0 ]; then
         cp $USERS $RADIUCAL_HOME/eap_users
         echo "sighup hostapd"
         kill -HUP $(pidof hostapd)
+        kill -2 $(pidof radiucal)
         # run local reports
         if [ -e "./reports" ]; then
             ./local-reports $IS_LOCAL
