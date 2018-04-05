@@ -29,7 +29,8 @@ var (
 	serverAddress *net.UDPAddr
 	clients       map[string]*connection = make(map[string]*connection)
 	mutex         *sync.Mutex            = new(sync.Mutex)
-	fileLock      *sync.Mutex            = new(sync.Mutex)
+	markLock      *sync.Mutex            = new(sync.Mutex)
+	auditLock     *sync.Mutex            = new(sync.Mutex)
 )
 
 type authmode struct {
@@ -43,6 +44,7 @@ type context struct {
 	debug   bool
 	preauth *authmode
 	secret  string
+	audit   bool
 }
 
 type connection struct {
@@ -135,8 +137,11 @@ func preauth(b string, ctx *context) error {
 		failure = errors.New(fmt.Sprintf("failed preauth: %s %s", username, calling))
 		result = "failed"
 	}
+	if ctx.audit {
+		go auditLog("auth", ctx, p)
+	}
 	if ctx.debug {
-		go dump(ctx, p)
+		go dump(ctx, p, printDump)
 	}
 	if ctx.preauth.log {
 		go mark(ctx, result, username, calling, p)
@@ -144,9 +149,35 @@ func preauth(b string, ctx *context) error {
 	return failure
 }
 
-func dump(ctx *context, p *radius.Packet) {
+func auditLog(id string, ctx *context, p *radius.Packet) {
+	auditLock.Lock()
+	defer auditLock.Unlock()
+	f, t := getFile(ctx, id)
+	if f == nil {
+		return
+	}
+	fxn := func(data []string) {
+		output := ""
+		for _, d := range data {
+			output = output + fmt.Sprintf("%s\n", d)
+		}
+		formatLog(f, t, id, output)
+	}
+	dump(ctx, p, fxn)
+}
+
+func printDump(data []string) {
+	for _, d := range data {
+		log.Println(d)
+	}
+}
+
+type dumpCallback func(data []string)
+
+func dump(ctx *context, p *radius.Packet, callback dumpCallback) {
+	var datum []string
 	for t, a := range p.Attributes {
-		log.Println(fmt.Sprintf("Type: %d", t))
+		datum = append(datum, fmt.Sprintf("Type: %d", t))
 		for _, s := range a {
 			str := true
 			val := string(s)
@@ -159,9 +190,26 @@ func dump(ctx *context, p *radius.Packet) {
 			if !str {
 				val = fmt.Sprintf("%x", s)
 			}
-			log.Println(fmt.Sprintf("Value: %s", val))
+			datum = append(datum, fmt.Sprintf("Value: %s", val))
 		}
 	}
+	if len(datum) > 0 {
+		callback(datum)
+	}
+}
+
+func formatLog(f *os.File, t time.Time, indicator, message string) {
+	f.Write([]byte(fmt.Sprintf("%s [%s] %s\n", t.Format("2006-01-02T15:04:05"), strings.ToUpper(indicator), message)))
+}
+
+func getFile(ctx *context, name string) (*os.File, time.Time) {
+	t := time.Now()
+	logPath := filepath.Join(ctx.logs, fmt.Sprintf("radiucal.%s.%s", t.Format("2006-01-02")))
+	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
+	if logError(fmt.Sprintf("logging: %s", name), err) {
+		return nil, t
+	}
+	return f, t
 }
 
 func mark(ctx *context, result, user, calling string, p *radius.Packet) {
@@ -169,16 +217,14 @@ func mark(ctx *context, result, user, calling string, p *radius.Packet) {
 	if len(nas) == 0 {
 		nas = "unknown"
 	}
-	fileLock.Lock()
-	defer fileLock.Unlock()
-	t := time.Now()
-	logPath := filepath.Join(ctx.logs, fmt.Sprintf("radiucal.audit.%s", t.Format("2006-01-02")))
-	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
-	if logError("file audit", err) {
+	markLock.Lock()
+	defer markLock.Unlock()
+	f, t := getFile(ctx, "audit")
+	if f == nil {
 		return
 	}
 	defer f.Close()
-	f.Write([]byte(fmt.Sprintf("%s [%s] %s (mac:%s) (nas:%s)\n", t.Format("2006-01-02T15:04:05"), strings.ToUpper(result), user, calling, nas)))
+	formatLog(f, t, result, fmt.Sprintf("%s (mac:%s) (nas:%s)", user, calling, nas))
 }
 
 func runProxy(ctx *context) {
