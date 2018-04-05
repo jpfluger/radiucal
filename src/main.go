@@ -137,7 +137,7 @@ func preauth(b string, ctx *context) error {
 	_, ok := blacklist[fqdn]
 	preLock.Unlock()
 	if ok {
-		return errors.New(fmt.Sprintf("%s is blacklist", fqdn))
+		return errors.New(fmt.Sprintf("%s is blacklisted", fqdn))
 	}
 	path := filepath.Join(ctx.db, fqdn)
 	result := "passed"
