@@ -31,11 +31,18 @@ if [ -e $HASH ]; then
     cp $HASH $PREV
 fi
 
+_sig() {
+    echo "signal applications"
+    kill -HUP $(pidof hostapd)
+    kill -2 $(pidof radiucal)
+}
+
 cat users/user_* | sha256sum | cut -d " " -f 1 > $HASH 
 if [ $IS_LOCAL -eq 0 ]; then
     ./monitor
     daily=${IS_DAILY}.radius-$(date +%Y-%m-%d)
     if [ ! -e $daily ]; then
+        _sig
         ./reports
         touch $daily
     fi
@@ -74,22 +81,6 @@ _update_files() {
         touch ${p}$u
     done
 }
-
-_sig() {
-    echo "signal applications"
-    kill -HUP $(pidof hostapd)
-    kill -2 $(pidof radiucal)
-}
-
-if [ $IS_LOCAL -eq 0 ]; then
-    conf_check=/var/lib/radiucal/configure.
-    check=$conf_check$(date +%Y-%m-%d)
-    if [ ! -e $check ]; then
-        rm -f ${conf_check}*
-        _sig
-        touch $check
-    fi
-fi
 
 if [ $diffed -ne 0 ]; then
     echo "network configuration updated"
