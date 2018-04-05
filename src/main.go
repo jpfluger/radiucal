@@ -353,7 +353,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for sig := range c {
-			log.Println("captured %v", sig)
+			log.Println("captured:", sig)
 			reload(ctx)
 		}
 	}()
