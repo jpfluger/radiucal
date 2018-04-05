@@ -25,10 +25,9 @@ done
 BIN=bin/
 mkdir -p $BIN
 USERS=${BIN}eap_users
-AUDIT=${BIN}audit.csv
-PREV=${AUDIT}.prev
-if [ -e $AUDIT ]; then
-    cp $AUDIT $PREV
+PREV=${USERS}.prev
+if [ -e $USERS ]; then
+    cp $USERS $PREV
 fi
 
 radiucal-bootstrap
@@ -52,9 +51,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 diffed=1
-if [ -e $AUDIT ]; then
+if [ -e $USERS ]; then
     if [ -e $PREV ]; then
-        changes=$(diff -u $PREV $AUDIT)
+        changes=$(diff -u $PREV $USERS)
         diffed=$?
         if [ $diffed -ne 0 ]; then
             if [ $IS_LOCAL -eq 1 ]; then
