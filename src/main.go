@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -31,6 +32,8 @@ var (
 	mutex         *sync.Mutex            = new(sync.Mutex)
 	markLock      *sync.Mutex            = new(sync.Mutex)
 	auditLock     *sync.Mutex            = new(sync.Mutex)
+	preLock       *sync.Mutex            = new(sync.Mutex)
+	blacklist     map[string]struct{}    = make(map[string]struct{})
 )
 
 type authmode struct {
@@ -129,13 +132,23 @@ func preauth(b string, ctx *context) error {
 	}
 	username = clean(username)
 	calling = clean(calling)
-	path := filepath.Join(ctx.db, fmt.Sprintf("%s.%s", username, calling))
+	fqdn := fmt.Sprintf("%s.%s", username, calling)
+	preLock.Lock()
+	_, ok := blacklist[fqdn]
+	preLock.Unlock()
+	if ok {
+		return errors.New(fmt.Sprintf("%s is blacklist", fqdn))
+	}
+	path := filepath.Join(ctx.db, fqdn)
 	result := "passed"
 	var failure error
 	res := pathExists(path)
 	if !res {
 		failure = errors.New(fmt.Sprintf("failed preauth: %s %s", username, calling))
 		result = "failed"
+		preLock.Lock()
+		blacklist[fqdn] = struct{}{}
+		preLock.Unlock()
 	}
 	if ctx.audit {
 		go auditLog("auth", ctx, p)
@@ -298,6 +311,16 @@ func parseSecrets(secretFile string) string {
 	panic("unable to find shared secret entry")
 }
 
+func reload(ctx *context) {
+	log.Println("received SIGINT")
+	if ctx.preauth.enabled {
+		log.Println("clearing blacklist")
+		preLock.Lock()
+		blacklist = make(map[string]struct{})
+		preLock.Unlock()
+	}
+}
+
 func main() {
 	log.SetFlags(0)
 	log.Println(fmt.Sprintf("radiucal (%s)", vers))
@@ -322,5 +345,11 @@ func main() {
 	}
 	secret := parseSecrets(*secrets)
 	preauthing := &authmode{enabled: *pre, log: *preLog}
-	runProxy(&context{db: *db, logs: *log, debug: *debug, preauth: preauthing, secret: secret, audit: *audit})
+	ctx := &context{db: *db, logs: *log, debug: *debug, preauth: preauthing, secret: secret, audit: *audit}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		reload(ctx)
+	}()
+	runProxy(ctx)
 }
