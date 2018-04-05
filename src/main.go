@@ -139,7 +139,7 @@ func preauth(b string, ctx *context) error {
 		go dump(ctx, p)
 	}
 	if ctx.preauth.log {
-		go mark(ctx, result, username, calling)
+		go mark(ctx, result, username, calling, p)
 	}
 	return failure
 }
@@ -164,7 +164,11 @@ func dump(ctx *context, p *radius.Packet) {
 	}
 }
 
-func mark(ctx *context, result, user, calling string) {
+func mark(ctx *context, result, user, calling string, p *radius.Packet) {
+	nas := clean(NASIdentifier_GetString(p))
+	if len(nas) == 0 {
+		nas = "unknown"
+	}
 	fileLock.Lock()
 	defer fileLock.Unlock()
 	t := time.Now()
@@ -174,7 +178,7 @@ func mark(ctx *context, result, user, calling string) {
 		return
 	}
 	defer f.Close()
-	f.Write([]byte(fmt.Sprintf("%s [%s] %s (%s)\n", t.Format("2006-01-02T15:04:05"), strings.ToUpper(result), user, calling)))
+	f.Write([]byte(fmt.Sprintf("%s [%s] %s (mac:%s) (nas:%s)\n", t.Format("2006-01-02T15:04:05"), strings.ToUpper(result), user, calling, nas)))
 }
 
 func runProxy(ctx *context) {
