@@ -179,6 +179,11 @@ func mark(ctx *context, result, user, calling string) {
 
 func runProxy(ctx *context) {
 	if ctx.debug {
+		log.Println("=============WARNING==================")
+		log.Println("debugging is enabled!")
+		log.Println("dumps from debugging may contain secrets")
+		log.Println("do NOT share debugging dumps")
+		log.Println("=============WARNING==================")
 		log.Println("secret")
 		log.Println(ctx.secret)
 	}
