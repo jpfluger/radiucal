@@ -217,7 +217,7 @@ func formatLog(f *os.File, t time.Time, indicator, message string) {
 
 func getFile(ctx *context, name string) (*os.File, time.Time) {
 	t := time.Now()
-	logPath := filepath.Join(ctx.logs, fmt.Sprintf("radiucal.%s.%s", t.Format("2006-01-02")))
+	logPath := filepath.Join(ctx.logs, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
 	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
 	if logError(fmt.Sprintf("logging: %s", name), err) {
 		return nil, t
