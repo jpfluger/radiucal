@@ -138,7 +138,7 @@ radius_accept_attr=81:d:1
 
 To perform mac-bypass for a mac
 ```
-"001122334455" MACACL "001122334455"
+"001122334455" MD5 "001122334455"
 ```
 
 ## radiucal-utils
