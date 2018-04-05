@@ -11,7 +11,6 @@ if [ -e $LAST ]; then
 else
     rm -f ${AUDITS}*
 fi
-echo "$SRT_LINE"
 LOG=${LIB}log/radiucal.audit.$DATE
 if [ -e $LOG ]; then
     lines=$(cat $LOG | wc -l)
