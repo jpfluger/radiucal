@@ -3,7 +3,7 @@
 LIB=/var/lib/radiucal/
 LAST_TIME=""
 DATE=$(date +%Y-%m-%d)
-AUDITS=${LIB}last_audits
+AUDITS=${LIB}proxy
 LAST=$AUDITS.$DATE
 SRT_LINE=0
 if [ -e $LAST ]; then
