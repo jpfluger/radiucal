@@ -310,6 +310,7 @@ func main() {
 	var pre = flag.Bool("preauth", true, "preauth checks")
 	var preLog = flag.Bool("preauth-log", true, "preauth logging")
 	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
+	var audit = flag.Bool("audit", false, "dump auth requests for auditing")
 	flag.Parse()
 	if !pathExists(*db) || !pathExists(*log) {
 		panic("missing required directory")
@@ -321,5 +322,5 @@ func main() {
 	}
 	secret := parseSecrets(*secrets)
 	preauthing := &authmode{enabled: *pre, log: *preLog}
-	runProxy(&context{db: *db, logs: *log, debug: *debug, preauth: preauthing, secret: secret})
+	runProxy(&context{db: *db, logs: *log, debug: *debug, preauth: preauthing, secret: secret, audit: *audit})
 }
