@@ -25,7 +25,6 @@ _post() {
 
 DAILY=1
 if [ ! -z "$1" ]; then
-    _post
     DAILY=$1
 fi
 
@@ -44,6 +43,7 @@ echo "| user | vlan | mac |
 cat $AUDITS | sed "s/,/ | /g;s/^/| /g;s/$/ |/g" | sort -u >> $ASSIGNED
 
 if [ $DAILY -ne 1 ]; then
+    _post
     exit 0
 fi
 
