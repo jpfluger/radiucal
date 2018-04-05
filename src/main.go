@@ -33,7 +33,7 @@ var (
 	markLock      *sync.Mutex            = new(sync.Mutex)
 	auditLock     *sync.Mutex            = new(sync.Mutex)
 	preLock       *sync.Mutex            = new(sync.Mutex)
-	blacklist     map[string]struct{}    = make(map[string]struct{})
+	preauthed     map[string]bool        = make(map[string]bool)
 )
 
 type authmode struct {
@@ -48,6 +48,7 @@ type context struct {
 	preauth *authmode
 	secret  string
 	audit   bool
+	cache   bool
 }
 
 type connection struct {
@@ -132,29 +133,36 @@ func preauth(b string, ctx *context) error {
 	}
 	username = clean(username)
 	calling = clean(calling)
-	fqdn := fmt.Sprintf("%s.%s", username, calling)
-	preLock.Lock()
-	_, ok := blacklist[fqdn]
-	preLock.Unlock()
-	if ok {
-		return errors.New(fmt.Sprintf("%s is blacklisted", fqdn))
-	}
-	path := filepath.Join(ctx.db, fqdn)
-	result := "passed"
-	var failure error
-	res := pathExists(path)
-	if !res {
-		failure = errors.New(fmt.Sprintf("failed preauth: %s %s", username, calling))
-		result = "failed"
-		preLock.Lock()
-		blacklist[fqdn] = struct{}{}
-		preLock.Unlock()
-	}
 	if ctx.audit {
 		go auditLog("auth", ctx, p)
 	}
 	if ctx.debug {
 		go dump(ctx, p, printDump)
+	}
+	fqdn := fmt.Sprintf("%s.%s", username, calling)
+	preLock.Lock()
+	good, ok := preauthed[fqdn]
+	preLock.Unlock()
+	if ctx.cache && ok {
+		if ctx.debug {
+			log.Println("object is preauthed")
+		}
+		if good {
+			return nil
+		} else {
+			return errors.New(fmt.Sprintf("%s is blacklisted", fqdn))
+		}
+	}
+	path := filepath.Join(ctx.db, fqdn)
+	result := "passed"
+	var failure error
+	res := pathExists(path)
+	preLock.Lock()
+	preauthed[fqdn] = res
+	preLock.Unlock()
+	if !res {
+		failure = errors.New(fmt.Sprintf("failed preauth: %s %s", username, calling))
+		result = "failed"
 	}
 	if ctx.preauth.log {
 		go mark(ctx, result, username, calling, p)
@@ -319,7 +327,7 @@ func reload(ctx *context) {
 	if ctx.preauth.enabled {
 		log.Println("clearing blacklist")
 		preLock.Lock()
-		blacklist = make(map[string]struct{})
+		preauthed = make(map[string]bool)
 		preLock.Unlock()
 	}
 }
@@ -333,6 +341,7 @@ func main() {
 	var db = flag.String("db", lib+"users/", "user.mac directory")
 	var logDir = flag.String("log", lib+"log/", "audit logging")
 	var debug = flag.Bool("debug", false, "debug mode")
+	var cache = flag.Bool("cache", true, "enable caching")
 	var pre = flag.Bool("preauth", true, "preauth checks")
 	var preLog = flag.Bool("preauth-log", true, "preauth logging")
 	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
@@ -348,7 +357,7 @@ func main() {
 	}
 	secret := parseSecrets(*secrets)
 	preauthing := &authmode{enabled: *pre, log: *preLog}
-	ctx := &context{db: *db, logs: *logDir, debug: *debug, preauth: preauthing, secret: secret, audit: *audit}
+	ctx := &context{db: *db, logs: *logDir, debug: *debug, preauth: preauthing, secret: secret, audit: *audit, cache: *cache}
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
