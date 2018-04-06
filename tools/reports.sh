@@ -96,12 +96,13 @@ unknowns=""
 leases=$(curl -s -k "$RPT_HOST/reports/view/dns?raw=true")
 for l in $(echo "$leases" | sed "s/ /,/g"); do
     t=$(echo $l | cut -d "," -f 1)
-    if [[ "$t" == "static" ]]; then
-        continue
-    fi
     ip=$(echo $l | cut -d "," -f 3)
     mac=$(echo $l | cut -d "," -f 2 | tr '[:upper:]' '[:lower:]' | sed "s/://g")
     line="| $mac | $ip |"
+    if [[ "$t" == "static" ]]; then
+        echo "| mapped $line" >> $LEASES_KNOWN
+        continue
+    fi
     if [ ! -z "$LEASE_MGMT" ]; then
         echo "$ip" | grep -q "$LEASE_MGMT"
         if [ $? -eq 0 ]; then
@@ -111,7 +112,7 @@ for l in $(echo "$leases" | sed "s/ /,/g"); do
     fi
     cat $AUDITS | grep -q "$mac"
     if [ $? -eq 0 ]; then
-        echo "| normal $line" >> $LEASES_KNOWN
+        echo "| dhcp $line" >> $LEASES_KNOWN
         continue
     fi
     unknowns="$unknowns $mac ($ip)"
@@ -120,6 +121,6 @@ done
 if [ ! -z "$unknowns" ]; then
     echo "unknown leases: $unknowns" | smirc
 fi
-cat $LEASES_KNOWN | sort -ur >> $LEASES
+cat $LEASES_KNOWN | sort -u >> $LEASES
 
 _post
