@@ -1,11 +1,9 @@
 #!/bin/bash
-LOCAL_CONF=~/.config/epiphyte/env
 RADIUCAL_HOME=/var/lib/radiucal/
 IS_DAILY=/tmp/
 source /etc/environment
 IS_LOCAL=0
-if [ -e $LOCAL_CONF ]; then
-    source $LOCAL_CONF
+if [ -e "/usr/share/radiucal/radiucal-utils" ]; then
     IS_LOCAL=1
 fi
 echo "updating network configuration"
