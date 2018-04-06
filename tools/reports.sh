@@ -76,7 +76,7 @@ if [ ! -z "$files" ]; then
                 stat=$(echo $has | cut -d "," -f 2 | sed "s/\[//g;s/\]//g")
                 usr=$(echo $u | cut -d "," -f 1)
                 notcruft="$notcruft|$usr"
-                mac=$(echo $u | cut -d "," -f 2 | sed "s/(//g;s/)//g")
+                mac=$(echo $u | cut -d "," -f 2 | sed "s/(//g;s/)//g;s/mac://g")
                 echo "| $usr | $mac | $stat ($day) |" >> $AUTHS
                 break
             fi
