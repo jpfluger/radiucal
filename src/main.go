@@ -332,10 +332,27 @@ func reload(ctx *context) {
 	}
 }
 
+func accounting(ctx *context) {
+	var buffer [bSize]byte
+	for {
+		n, _, err := proxy.ReadFromUDP(buffer[0:])
+		if logError("accounting udp error", err) {
+			continue
+		}
+
+		p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
+		if err != nil {
+			// unable to read/parse this packet so move on
+			continue
+		}
+		go auditLog("acct", ctx, p)
+	}
+}
+
 func main() {
 	log.SetFlags(0)
 	log.Println(fmt.Sprintf("radiucal (%s)", vers))
-	var from = flag.Int("from", 1812, "Proxy (from) port")
+	var port = flag.Int("port", 1812, "Listening port")
 	var to = flag.Int("to", 1814, "Server (to) port")
 	var host = flag.String("host", "localhost", "Server address")
 	var db = flag.String("db", lib+"users/", "user.mac directory")
@@ -346,25 +363,31 @@ func main() {
 	var preLog = flag.Bool("preauth-log", true, "preauth logging")
 	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
 	var audit = flag.Bool("audit", false, "dump auth requests for auditing")
+	var acct = flag.Bool("accounting", false, "run as an account server")
 	flag.Parse()
 	if !pathExists(*db) || !pathExists(*logDir) {
 		panic("missing required directory")
 	}
 	addr := fmt.Sprintf("%s:%d", *host, *to)
-	err := setup(addr, *from)
+	err := setup(addr, *port)
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
 	secret := parseSecrets(*secrets)
 	preauthing := &authmode{enabled: *pre, log: *preLog}
 	ctx := &context{db: *db, logs: *logDir, debug: *debug, preauth: preauthing, secret: secret, audit: *audit, cache: *cache}
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for sig := range c {
-			log.Println("captured:", sig)
-			reload(ctx)
-		}
-	}()
-	runProxy(ctx)
+	if *acct {
+		log.Println("accounting mode")
+		accounting(ctx)
+	} else {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for sig := range c {
+				log.Println("captured:", sig)
+				reload(ctx)
+			}
+		}()
+		runProxy(ctx)
+	}
 }

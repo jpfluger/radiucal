@@ -1,0 +1,10 @@
+[Unit]
+Description=RADIUS accounting server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/radiucal --accounting=true --port 1814
+
+[Install]
+WantedBy=multi-user.target
