@@ -209,7 +209,7 @@ func dump(ctx *context, p *radius.Packet, callback dumpCallback) {
 				}
 			}
 			if !str {
-				val = fmt.Sprintf("%x", s)
+				val = fmt.Sprintf("(hex) %x", s)
 			}
 			datum = append(datum, fmt.Sprintf("Value: %s", val))
 		}
