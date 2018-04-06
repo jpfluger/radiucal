@@ -64,7 +64,7 @@ class Assignment(object):
         self.expires = None
         self.disabled = False
         self.inherits = None
-        self.port_bypass = []
+        self.owns = []
         self.group = None
 
     def _compare_date(self, value, regex, today):
@@ -112,11 +112,11 @@ class Assignment(object):
             for mac in self.bypass:
                 if not is_mac(mac, category='bypass'):
                     return False
-        if self.port_bypass is not None and len(self.port_bypass):
+        if self.owns is not None and len(self.owns):
             already_set = self.macs
             if self.bypass is not None:
                 already_set = already_set + self.bypass
-            for mac in self.port_bypass:
+            for mac in self.owns:
                 if not is_mac(mac):
                     return False
                 if mac in already_set:

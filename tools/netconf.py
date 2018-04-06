@@ -164,7 +164,7 @@ def _process(output):
             macs = sorted(obj.macs)
             password = obj.password
             bypass = sorted(obj.bypass)
-            port_bypassed = sorted(obj.port_bypass)
+            ownsed = sorted(obj.owns)
             # meta checks
             meta.user_macs(macs)
             if not obj.inherits:
@@ -172,12 +172,12 @@ def _process(output):
             meta.bypassed(bypass)
             # use config definitions here
             if not obj.no_login:
-                store.add_user(fqdn, macs, password, port_bypassed)
+                store.add_user(fqdn, macs, password, ownsed)
             if bypass is not None and len(bypass) > 0:
                 for mac_bypass in bypass:
                     store.add_mac(mac_bypass, vlan)
             user_all = []
-            for l in [obj.macs, obj.port_bypass, obj.bypass]:
+            for l in [obj.macs, obj.owns, obj.bypass]:
                 user_all += list(l)
             store.add_audit(fqdn, sorted(set(user_all)))
     meta.verify()
@@ -249,7 +249,7 @@ class Store(object):
                  username,
                  macs,
                  password,
-                 port_bypass):
+                 owns):
         """Add a user definition."""
         if username in self._users:
             raise Exception("{} already defined".format(username))
@@ -257,7 +257,7 @@ class Store(object):
         for m in macs:
             self._add(self.umac, username, m)
         self._add(self.pwd, username, password)
-        for p in port_bypass:
+        for p in owns:
             self._add(self.bypass, username, p)
 
     def add_mac(self, mac, vlan):
