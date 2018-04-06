@@ -90,7 +90,7 @@ fi
 LEASES_KNOWN=${BIN}known_leases
 rm -f $LEASES_KNOWN
 LEASES=${BIN}leases.md
-echo "| mac | ip | known |
+echo "| status | mac | ip |
 | --- | --- | --- |" > $LEASES
 unknowns=""
 leases=$(curl -s -k "$RPT_HOST/reports/view/dns?raw=true")
@@ -105,21 +105,21 @@ for l in $(echo "$leases" | sed "s/ /,/g"); do
     if [ ! -z "$LEASE_MGMT" ]; then
         echo "$ip" | grep -q "$LEASE_MGMT"
         if [ $? -eq 0 ]; then
-            echo "$line mgmt |" >> $LEASES_KNOWN
+            echo "| mgmt $line" >> $LEASES_KNOWN
             continue
         fi
     fi
     cat $AUDITS | grep -q "$mac"
     if [ $? -eq 0 ]; then
-        echo "$line normal |" >> $LEASES_KNOWN
+        echo "| normal $line" >> $LEASES_KNOWN
         continue
     fi
     unknowns="$unknowns $mac ($ip)"
-    echo "$line unknown |" >> $LEASES
+    echo "| unknown $line" >> $LEASES
 done
 if [ ! -z "$unknowns" ]; then
     echo "unknown leases: $unknowns" | smirc
 fi
-cat $LEASES_KNOWN | sort -u >> $LEASES
+cat $LEASES_KNOWN | sort -ur >> $LEASES
 
 _post
