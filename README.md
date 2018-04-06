@@ -58,6 +58,8 @@ systemctl enable --now hostapd.service
 if using radiucal (make sure to bind hostapd to not 1812 for radius)
 ```
 systemctl enable --now radiucal.service
+# for accounting
+systemctl enable --now radiucal-accounting.service
 ```
 
 ## setup/notes
