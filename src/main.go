@@ -178,7 +178,7 @@ func auditLog(id string, ctx *context, p *radius.Packet) {
 		return
 	}
 	fxn := func(data []string) {
-		output := ""
+		output := fmt.Sprintf("id -> %s \n", id)
 		for _, d := range data {
 			output = output + fmt.Sprintf("%s\n", d)
 		}
