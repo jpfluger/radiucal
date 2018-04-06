@@ -324,8 +324,8 @@ func parseSecrets(secretFile string) string {
 
 func reload(ctx *context) {
 	log.Println("received SIGINT")
-	if ctx.preauth.enabled {
-		log.Println("clearing blacklist")
+	if ctx.preauth.enabled && ctx.cache {
+		log.Println("clearing preauth cache")
 		preLock.Lock()
 		preauthed = make(map[string]bool)
 		preLock.Unlock()
