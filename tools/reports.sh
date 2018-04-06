@@ -87,9 +87,11 @@ if [ ! -z "$files" ]; then
 fi
 
 # Leases
+LEASES_KNOWN=${BIN}known_leases
+rm -f $LEASES_KNOWN
 LEASES=${BIN}leases.md
-echo "| mac | ip |
-| --- | --- |" > $LEASES
+echo "| mac | ip | known |
+| --- | --- | --- |" > $LEASES
 unknowns=""
 leases=$(curl -s -k "$RPT_HOST/reports/view/dns?raw=true")
 for l in $(echo "$leases" | sed "s/ /,/g"); do
@@ -99,23 +101,25 @@ for l in $(echo "$leases" | sed "s/ /,/g"); do
     fi
     ip=$(echo $l | cut -d "," -f 3)
     mac=$(echo $l | cut -d "," -f 2 | tr '[:upper:]' '[:lower:]' | sed "s/://g")
+    line="| $mac | $ip |"
     if [ ! -z "$LEASE_MGMT" ]; then
         echo "$ip" | grep -q "$LEASE_MGMT"
         if [ $? -eq 0 ]; then
+            echo "$line mgmt |" >> $LEASES_KNOWN
             continue
         fi
     fi
     cat $AUDITS | grep -q "$mac"
     if [ $? -eq 0 ]; then
+        echo "$line normal |" >> $LEASES_KNOWN
         continue
     fi
     unknowns="$unknowns $mac ($ip)"
-    echo "| $mac | $ip |" >> $LEASES
+    echo "$line unknown |" >> $LEASES
 done
-if [ -z "$unknowns" ]; then
-    echo "| n/a | n/a |" >> $LEASES
-else
+if [ ! -z "$unknowns" ]; then
     echo "unknown leases: $unknowns" | smirc
 fi
+cat $LEASES_KNOWN | sort -u >> $LEASES
 
 _post
