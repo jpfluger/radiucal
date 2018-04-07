@@ -65,6 +65,7 @@ class Assignment(object):
         self.disabled = False
         self.inherits = None
         self.owns = []
+        self.limited = []
         self.group = None
 
     def _compare_date(self, value, regex, today):
@@ -85,6 +86,21 @@ class Assignment(object):
         self.password = other.password
         self.macs = set(self.macs + other.macs)
         self.group = other.group
+
+    def _check_macs(self, against, previous=[]):
+        """Check macs."""
+        if against is not None and len(against) > 0:
+            already_set = self.macs + previous
+            if self.bypass is not None:
+                already_set = already_set + self.bypass
+            if previous is not None:
+                already_set = already_set + previous
+            for mac in against:
+                if not is_mac(mac):
+                    return False
+                if mac in already_set:
+                    return False
+        return True
 
     def check(self):
         """check the assignment definition."""
@@ -112,15 +128,10 @@ class Assignment(object):
             for mac in self.bypass:
                 if not is_mac(mac, category='bypass'):
                     return False
-        if self.owns is not None and len(self.owns):
-            already_set = self.macs
-            if self.bypass is not None:
-                already_set = already_set + self.bypass
-            for mac in self.owns:
-                if not is_mac(mac):
-                    return False
-                if mac in already_set:
-                    return self.report("invalid port bypass mac")
+        if not self._check_macs(self.owns):
+            return self.report("invalid owned mac")
+        if not self._check_macs(self.limited, previous=self.owns):
+            return self.report("invalid limited mac")
         if len(self.macs) != len(set(self.macs)):
             return self.report("macs not unique")
         if self.disable is not None and len(self.disable) > 0:
