@@ -209,7 +209,10 @@ def _process(output):
         for u in store.get_eap_mab():
             up = u[0].upper()
             f.write('"{}" MD5 "{}"\n'.format(up, up))
-            write_vlan(f, u[1])
+            if u[2]:
+                write_vlan(f, u[1])
+            else:
+                f.write("\n")
             manifest.append((u[0], u[0]))
     for u in store.get_tag(store.umac):
         manifest.append((u[0], u[1]))
@@ -287,7 +290,8 @@ class Store(object):
     def get_eap_mab(self):
         """Get eap entries for MAB."""
         for m in self.get_tag(self.mac):
-            yield [m[0], self._get_vlan(m[1])]
+            v = self._get_vlan(m[1])
+            yield [m[0], v, v != VLAN_UNAUTH]
 
     def get_eap_user(self):
         """Get eap users."""
