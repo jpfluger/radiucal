@@ -67,6 +67,7 @@ class Assignment(object):
         self.owns = []
         self.limited = []
         self.group = None
+        self.mab_only = False
 
     def _compare_date(self, value, regex, today):
         """compare date."""

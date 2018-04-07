@@ -179,6 +179,8 @@ def _process(output):
             # use config definitions here
             if not obj.no_login:
                 store.add_user(fqdn, macs, password, owned, limited)
+            if obj.mab_only:
+                store.set_mab(fqdn)
 
             def add_mac(macs, vlan_id):
                 """Add a mac+vlan to the store."""
@@ -241,9 +243,14 @@ class Store(object):
         self.mac = "MAC"
         self.audit = "AUDIT"
         self._users = []
+        self._mab = []
         self._macs = []
         self._vlans = {}
         self._vlans[VLAN_UNAUTH] = VLAN_UNAUTH
+
+    def set_mab(self, username):
+        """Set a user as MAB-only, no login set."""
+        self._mab.append(username)
 
     def get_tag(self, tag):
         """Get tagged items."""
@@ -296,6 +303,8 @@ class Store(object):
     def get_eap_user(self):
         """Get eap users."""
         for u in self.get_tag(self.pwd):
+            if u[0] in self._mab:
+                continue
             vlan = u[0].split(".")[0]
             yield [u[0], u[1], self._get_vlan(vlan)]
 
