@@ -11,6 +11,9 @@ import csv
 IND_DELIM = "_"
 USER_INDICATOR = "user" + IND_DELIM
 VLAN_INDICATOR = "vlan" + IND_DELIM
+VLAN_UNAUTH = "4000"
+AUTH_PHASE_ONE = "PEAP"
+AUTH_PHASE_TWO = "MSCHAPV2"
 
 
 class ConfigMeta(object):
@@ -20,12 +23,12 @@ class ConfigMeta(object):
         """init the instance."""
         self.passwords = []
         self.macs = []
-        self.bypasses = []
         self.vlans = []
         self.all_vlans = []
         self.user_name = []
         self.vlan_users = []
         self.vlan_initiate = []
+        self.extras = []
 
     def password(self, password):
         """password group validation(s)."""
@@ -34,13 +37,13 @@ class ConfigMeta(object):
             exit(-1)
         self.passwords.append(password)
 
-    def bypassed(self, macs):
-        """bypass management."""
+    def extra(self, macs):
+        """Limited macs."""
         for mac in macs:
-            if mac in self.bypasses:
-                print("already bypassed")
+            if mac in self.extras:
+                print("mac already known as extra: " + mac)
                 exit(-1)
-            self.bypasses.append(mac)
+            self.extras.append(mac)
 
     def user_macs(self, macs):
         """user+mac combos."""
@@ -50,10 +53,10 @@ class ConfigMeta(object):
     def verify(self):
         """verify meta data."""
         for mac in self.macs:
-            if mac in self.bypasses:
-                print("mac is globally bypassed: " + mac)
+            if mac in self.extras:
+                print("mac is flagged extra: " + mac)
                 exit(-1)
-        for mac in self.bypasses:
+        for mac in self.extras:
             if mac in self.macs:
                 print("mac is user assigned: " + mac)
                 exit(-1)
@@ -165,19 +168,27 @@ def _process(output):
             password = obj.password
             bypass = sorted(obj.bypass)
             owned = sorted(obj.owns)
+            limited = sorted(obj.limited)
             # meta checks
             meta.user_macs(macs)
             if not obj.inherits:
                 meta.password(password)
-            meta.bypassed(bypass)
+            meta.extra(bypass)
+            meta.extra(owned)
+            meta.extra(limited)
             # use config definitions here
             if not obj.no_login:
-                store.add_user(fqdn, macs, password, owned)
-            if bypass is not None and len(bypass) > 0:
-                for mac_bypass in bypass:
-                    store.add_mac(mac_bypass, vlan)
+                store.add_user(fqdn, macs, password, owned, limited)
+
+            def add_mac(macs, vlan_id):
+                """Add a mac+vlan to the store."""
+                if macs and len(macs) > 0:
+                    for m in macs:
+                        store.add_mac(m, vlan_id)
+            add_mac(bypass, vlan)
+            add_mac(limited, VLAN_UNAUTH)
             user_all = []
-            for l in [obj.macs, obj.owns, obj.bypass]:
+            for l in [obj.macs, obj.owns, obj.bypass, obj.limited]:
                 user_all += list(l)
             store.add_audit(fqdn, sorted(set(user_all)))
     meta.verify()
@@ -192,8 +203,8 @@ def _process(output):
     manifest = []
     with open(output + "eap_users", 'w') as f:
         for u in store.get_eap_user():
-            f.write('"{}" PEAP\n\n'.format(u[0]))
-            f.write('"{}" MSCHAPV2 hash:{} [2]\n'.format(u[0], u[1]))
+            f.write('"{}" {}\n\n'.format(u[0], AUTH_PHASE_ONE))
+            f.write('"{}" {} hash:{} [2]\n'.format(u[0], AUTH_PHASE_TWO, u[1]))
             write_vlan(f, u[2])
         for u in store.get_eap_mab():
             up = u[0].upper()
@@ -229,6 +240,7 @@ class Store(object):
         self._users = []
         self._bypass = []
         self._vlans = {}
+        self._vlans[VLAN_UNAUTH] = VLAN_UNAUTH
 
     def get_tag(self, tag):
         """Get tagged items."""
@@ -249,7 +261,8 @@ class Store(object):
                  username,
                  macs,
                  password,
-                 owns):
+                 owns,
+                 limited):
         """Add a user definition."""
         if username in self._users:
             raise Exception("{} already defined".format(username))

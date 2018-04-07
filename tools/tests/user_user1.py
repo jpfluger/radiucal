@@ -13,3 +13,4 @@ admin.macs = normal.macs
 admin.vlan = "prod"
 admin.group = "adm"
 admin.password = 'ac0ae0d888d0e71c3dae227377a86012'
+admin.limited = ["123456789012"]
