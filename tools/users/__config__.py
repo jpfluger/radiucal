@@ -118,7 +118,11 @@ class Assignment(object):
                 return self.report("invalid expiration")
         if self.vlan is None or len(self.vlan) == 0:
             return self.report("no vlan assigned")
-        if self.macs is None or len(self.macs) == 0:
+        has_mac = False
+        for mac_group in [self.macs, self.bypass, self.limited]:
+            if mac_group is not None and len(mac_group) > 0:
+                has_mac = True
+        if not has_mac:
             return self.report("no macs listed")
         for mac in self.macs:
             if not is_mac(mac):
