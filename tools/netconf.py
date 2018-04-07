@@ -184,7 +184,7 @@ def _process(output):
                 """Add a mac+vlan to the store."""
                 if macs and len(macs) > 0:
                     for m in macs:
-                        store.add_mac(m, vlan_id)
+                        store.add_mab(m, vlan_id)
             add_mac(bypass, vlan)
             add_mac(limited, VLAN_UNAUTH)
             user_all = []
@@ -234,11 +234,11 @@ class Store(object):
         self.vlan = "VLAN"
         self.umac = "UMAC"
         self.pwd = "PWD"
-        self.bypass = "PORTBYPASS"
+        self.owned = "OWNS"
         self.mac = "MAC"
         self.audit = "AUDIT"
         self._users = []
-        self._bypass = []
+        self._macs = []
         self._vlans = {}
         self._vlans[VLAN_UNAUTH] = VLAN_UNAUTH
 
@@ -271,13 +271,13 @@ class Store(object):
             self._add(self.umac, username, m)
         self._add(self.pwd, username, password)
         for p in owns:
-            self._add(self.bypass, username, p)
+            self._add(self.owned, username, p)
 
-    def add_mac(self, mac, vlan):
-        """Add a bypass mac."""
-        if mac in self._bypass:
+    def add_mab(self, mac, vlan):
+        """Add a MAB."""
+        if mac in self._macs:
             raise Exception("{} already defined".format(mac))
-        self._bypass.append(mac)
+        self._macs.append(mac)
         self._add(self.mac, mac, vlan)
 
     def add_audit(self, user, objs):
