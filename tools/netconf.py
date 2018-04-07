@@ -164,7 +164,7 @@ def _process(output):
             macs = sorted(obj.macs)
             password = obj.password
             bypass = sorted(obj.bypass)
-            ownsed = sorted(obj.owns)
+            owned = sorted(obj.owns)
             # meta checks
             meta.user_macs(macs)
             if not obj.inherits:
@@ -172,7 +172,7 @@ def _process(output):
             meta.bypassed(bypass)
             # use config definitions here
             if not obj.no_login:
-                store.add_user(fqdn, macs, password, ownsed)
+                store.add_user(fqdn, macs, password, owned)
             if bypass is not None and len(bypass) > 0:
                 for mac_bypass in bypass:
                     store.add_mac(mac_bypass, vlan)
