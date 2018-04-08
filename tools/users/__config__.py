@@ -59,7 +59,6 @@ class Assignment(object):
         self.password = ""
         self.bypass = []
         self.vlan = None
-        self.disable = {}
         self.expires = None
         self.disabled = False
         self.inherits = None
@@ -138,20 +137,6 @@ class Assignment(object):
             return self.report("invalid limited mac (already known)")
         if len(self.macs) != len(set(self.macs)):
             return self.report("macs not unique")
-        if self.disable is not None and len(self.disable) > 0:
-            if isinstance(self.disable, dict):
-                for key in self.disable.keys():
-                    val = self.disable[key]
-                    res = self._compare_date(val, regex, today)
-                    if res is not None:
-                        if res:
-                            print("{0} has been time-disabled".format(key))
-                            if key in self.bypass:
-                                self.bypass.remove(key)
-                            if key in self.macs:
-                                self.macs.remove(key)
-                    else:
-                        return self.report("invalid MAC date")
         if self.group is None:
             return self.report("no group specified")
         return True

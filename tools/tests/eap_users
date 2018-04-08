@@ -5,13 +5,6 @@ radius_accept_attr=64:d:13
 radius_accept_attr=65:d:6
 radius_accept_attr=81:s:10
 
-"dev.disable" PEAP
-
-"dev.disable" MSCHAPV2 hash:180599206f5dffdd3881a121110da8ad [2]
-radius_accept_attr=64:d:13
-radius_accept_attr=65:d:6
-radius_accept_attr=81:s:10
-
 "dev.pwd" PEAP
 
 "dev.pwd" MSCHAPV2 hash:9eebc40b1fb48ddb3309d824abc28ae3 [2]

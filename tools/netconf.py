@@ -162,7 +162,7 @@ def _process(output):
                 print("did not pass check...")
                 exit(-1)
             if obj.disabled:
-                print("account is disabled or has expired...")
+                print("account is disabled")
                 continue
             macs = sorted(obj.macs)
             password = obj.password
