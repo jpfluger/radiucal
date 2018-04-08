@@ -5,11 +5,10 @@ import users.common as common
 normal = __config__.Assignment()
 normal.macs = [common.VALID_MAC]
 normal.vlan = "dev"
-normal.group = 'test'
 normal.password = '9eebc40b1fb48ddb3309d824abc28ae3'
 
 admin = __config__.Assignment()
 admin.macs = normal.macs
 admin.vlan = "prod"
-admin.group = "drop"
+admin.macs = [common.DROP_MAC]
 admin.password = '9eebc40b1fb48ddb3309d824abc28ae3'

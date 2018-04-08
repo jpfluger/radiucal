@@ -64,7 +64,6 @@ class Assignment(object):
         self.inherits = None
         self.owns = []
         self.limited = []
-        self.group = None
         self.mab_only = False
 
     def _compare_date(self, value, regex, today):
@@ -84,7 +83,6 @@ class Assignment(object):
         """copy/inherit from another entity."""
         self.password = other.password
         self.macs = set(self.macs + other.macs)
-        self.group = other.group
 
     def _check_macs(self, against, previous=[]):
         """Check macs."""
@@ -137,6 +135,4 @@ class Assignment(object):
                 return self.report("invalid mac (known): {}".format(c))
         if len(self.macs) != len(set(self.macs)):
             return self.report("macs not unique")
-        if self.group is None:
-            return self.report("no group specified")
         return True
