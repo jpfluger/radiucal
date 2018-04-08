@@ -178,7 +178,7 @@ def _process(output):
             meta.extra(limited)
             # use config definitions here
             if not obj.no_login:
-                store.add_user(fqdn, macs, password, owned, limited)
+                store.add_user(fqdn, macs, password)
             if obj.mab_only:
                 store.set_mab(fqdn)
 
@@ -267,12 +267,7 @@ class Store(object):
         """Backing tagged add."""
         self._data.append([tag, key, value])
 
-    def add_user(self,
-                 username,
-                 macs,
-                 password,
-                 owns,
-                 limited):
+    def add_user(self, username,  macs,  password):
         """Add a user definition."""
         if username in self._users:
             raise Exception("{} already defined".format(username))
@@ -280,8 +275,6 @@ class Store(object):
         for m in macs:
             self._add(self.umac, username, m)
         self._add(self.pwd, username, password)
-        for p in owns:
-            self._add(self.owned, username, p)
 
     def add_mab(self, mac, vlan):
         """Add a MAB."""
