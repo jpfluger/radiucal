@@ -96,10 +96,10 @@ class Assignment(object):
                 already_set = already_set + previous
             for mac in against:
                 if not is_mac(mac):
-                    return False
+                    return mac
                 if mac in already_set:
-                    return False
-        return True
+                    return mac
+        return None
 
     def check(self):
         """check the assignment definition."""
@@ -131,10 +131,10 @@ class Assignment(object):
             for mac in self.bypass:
                 if not is_mac(mac, category='bypass'):
                     return False
-        if not self._check_macs(self.owns):
-            return self.report("invalid owned mac (already known)")
-        if not self._check_macs(self.limited, previous=self.owns):
-            return self.report("invalid limited mac (already known)")
+        for c in [self._check_macs(self.owns),
+                  self._check_macs(self.limited, previous=self.owns)]:
+            if c is not None:
+                return self.report("invalid mac (known): {}".format(c))
         if len(self.macs) != len(set(self.macs)):
             return self.report("macs not unique")
         if self.group is None:
