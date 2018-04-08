@@ -176,9 +176,7 @@ def _process(output):
             meta.extra(bypass)
             meta.extra(owned)
             meta.extra(limited)
-            # use config definitions here
-            if not obj.no_login:
-                store.add_user(fqdn, macs, password)
+            store.add_user(fqdn, macs, password)
             if obj.mab_only:
                 store.set_mab(fqdn)
 
@@ -236,10 +234,8 @@ class Store(object):
     def __init__(self):
         """Init the instance."""
         self._data = []
-        self.vlan = "VLAN"
         self.umac = "UMAC"
         self.pwd = "PWD"
-        self.owned = "OWNS"
         self.mac = "MAC"
         self.audit = "AUDIT"
         self._users = []
@@ -261,7 +257,6 @@ class Store(object):
     def add_vlan(self, vlan_name, vlan_id):
         """Add a vlan item."""
         self._vlans[vlan_name] = vlan_id
-        self._add(self.vlan, vlan_name, vlan_id)
 
     def _add(self, tag, key, value):
         """Backing tagged add."""

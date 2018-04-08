@@ -60,7 +60,6 @@ class Assignment(object):
         self.bypass = []
         self.vlan = None
         self.disable = {}
-        self.no_login = False
         self.expires = None
         self.disabled = False
         self.inherits = None
