@@ -134,9 +134,9 @@ class Assignment(object):
                 if not is_mac(mac, category='bypass'):
                     return False
         if not self._check_macs(self.owns):
-            return self.report("invalid owned mac")
+            return self.report("invalid owned mac (already known)")
         if not self._check_macs(self.limited, previous=self.owns):
-            return self.report("invalid limited mac")
+            return self.report("invalid limited mac (already known)")
         if len(self.macs) != len(set(self.macs)):
             return self.report("macs not unique")
         if self.disable is not None and len(self.disable) > 0:
