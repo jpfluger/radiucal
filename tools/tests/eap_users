@@ -60,8 +60,14 @@ radius_accept_attr=65:d:6
 radius_accept_attr=81:s:10
 
 "ABCDEF123456" MD5 "ABCDEF123456"
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:s:4000
 
 "123456789012" MD5 "123456789012"
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:s:4000
 
 "112233445566" MD5 "112233445566"
 radius_accept_attr=64:d:13

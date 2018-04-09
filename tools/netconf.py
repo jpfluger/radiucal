@@ -11,7 +11,6 @@ import csv
 IND_DELIM = "_"
 USER_INDICATOR = "user" + IND_DELIM
 VLAN_INDICATOR = "vlan" + IND_DELIM
-VLAN_UNAUTH = "4000"
 AUTH_PHASE_ONE = "PEAP"
 AUTH_PHASE_TWO = "MSCHAPV2"
 
@@ -166,29 +165,22 @@ def _process(output):
                 continue
             macs = sorted(obj.macs)
             password = obj.password
-            bypass = sorted(obj.bypass)
+            bypassed = sorted(obj.bypassed())
             owned = sorted(obj.owns)
-            limited = sorted(obj.limited)
             # meta checks
             meta.user_macs(macs)
             if not obj.inherits:
                 meta.password(password)
-            meta.extra(bypass)
+            meta.extra(bypassed)
             meta.extra(owned)
-            meta.extra(limited)
             store.add_user(fqdn, macs, password)
             if obj.mab_only:
                 store.set_mab(fqdn)
-
-            def add_mac(macs, vlan_id):
-                """Add a mac+vlan to the store."""
-                if macs and len(macs) > 0:
-                    for m in macs:
-                        store.add_mab(m, vlan_id)
-            add_mac(bypass, vlan)
-            add_mac(limited, VLAN_UNAUTH)
+            if len(bypassed) > 0:
+                for m in bypassed:
+                    store.add_mab(m, obj.bypass_vlan(m))
             user_all = []
-            for l in [obj.macs, obj.owns, obj.bypass, obj.limited]:
+            for l in [obj.macs, obj.owns, bypassed]:
                 user_all += list(l)
             store.add_audit(fqdn, sorted(set(user_all)))
     meta.verify()
@@ -209,10 +201,7 @@ def _process(output):
         for u in store.get_eap_mab():
             up = u[0].upper()
             f.write('"{}" MD5 "{}"\n'.format(up, up))
-            if u[2]:
-                write_vlan(f, u[1])
-            else:
-                f.write("\n")
+            write_vlan(f, u[1])
             manifest.append((u[0], u[0]))
     for u in store.get_tag(store.umac):
         manifest.append((u[0], u[1]))
@@ -242,7 +231,6 @@ class Store(object):
         self._mab = []
         self._macs = []
         self._vlans = {}
-        self._vlans[VLAN_UNAUTH] = VLAN_UNAUTH
 
     def set_mab(self, username):
         """Set a user as MAB-only, no login set."""
@@ -285,8 +273,10 @@ class Store(object):
     def get_eap_mab(self):
         """Get eap entries for MAB."""
         for m in self.get_tag(self.mac):
-            v = self._get_vlan(m[1])
-            yield [m[0], v, v != VLAN_UNAUTH]
+            v = m[1]
+            if not isinstance(v, int):
+                v = self._get_vlan(v)
+            yield [m[0], v]
 
     def get_eap_user(self):
         """Get eap users."""

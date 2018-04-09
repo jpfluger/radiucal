@@ -57,13 +57,12 @@ class Assignment(object):
         """Init the instance."""
         self.macs = []
         self.password = ""
-        self.bypass = []
         self.vlan = None
         self.expires = None
         self.disabled = False
         self.inherits = None
         self.owns = []
-        self.limited = []
+        self._bypass = None
         self.mab_only = False
 
     def _compare_date(self, value, regex, today):
@@ -84,12 +83,33 @@ class Assignment(object):
         self.password = other.password
         self.macs = set(self.macs + other.macs)
 
+    def mab(self, mac, vlan=None):
+        """Set a MAC as MAB."""
+        v = vlan
+        if vlan is None:
+            v = self.vlan
+        if v is None:
+            raise Exception("mab before vlan assigned")
+        if self._bypass is None:
+            self._bypass = {}
+        self._bypass[mac] = v
+
+    def bypassed(self):
+        """Get MAB bypassed MACs."""
+        if self._bypass is None:
+            return []
+        return list(self._bypass.keys())
+
+    def bypass_vlan(self, mac):
+        """Get a MAB bypassed VLAN."""
+        return self._bypass[mac]
+
     def _check_macs(self, against, previous=[]):
         """Check macs."""
         if against is not None and len(against) > 0:
             already_set = self.macs + previous
-            if self.bypass is not None:
-                already_set = already_set + self.bypass
+            if self._bypass is not None:
+                already_set = already_set + list(self._bypass.keys())
             if previous is not None:
                 already_set = already_set + previous
             for mac in against:
@@ -115,7 +135,10 @@ class Assignment(object):
         if self.vlan is None or len(self.vlan) == 0:
             return self.report("no vlan assigned")
         has_mac = False
-        for mac_group in [self.macs, self.bypass, self.limited]:
+        knowns = []
+        if self._bypass is not None:
+            knowns = self._bypass.keys()
+        for mac_group in [self.macs, knowns]:
             if mac_group is not None and len(mac_group) > 0:
                 has_mac = True
         if not has_mac:
@@ -125,12 +148,11 @@ class Assignment(object):
                 return False
         if self.password is None or len(self.password) == 0:
             return self.report("no or short password")
-        if self.bypass is not None and len(self.bypass) > 0:
-            for mac in self.bypass:
+        if len(knowns) > 0:
+            for mac in knowns:
                 if not is_mac(mac, category='bypass'):
                     return False
-        for c in [self._check_macs(self.owns),
-                  self._check_macs(self.limited, previous=self.owns)]:
+        for c in [self._check_macs(self.owns)]:
             if c is not None:
                 return self.report("invalid mac (known): {}".format(c))
         if len(self.macs) != len(set(self.macs)):
