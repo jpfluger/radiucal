@@ -74,3 +74,13 @@ radius_accept_attr=64:d:13
 radius_accept_attr=65:d:6
 radius_accept_attr=81:s:10
 
+"AABBAABBAABB" MD5 "AABBAABBAABB"
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:s:11
+
+"FFDDEEFFDDEE" MD5 "FFDDEEFFDDEE"
+radius_accept_attr=64:d:13
+radius_accept_attr=65:d:6
+radius_accept_attr=81:s:11
+

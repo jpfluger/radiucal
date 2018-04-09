@@ -9,3 +9,4 @@ admin = __config__.Assignment()
 admin.macs = normal.macs
 admin.vlan = "prod"
 admin.password = 'c2f7aacb0c14b7fdfaddd4679102359d'
+admin.mab(["ffddeeffddee", "aabbaabbaabb"])

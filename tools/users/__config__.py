@@ -83,7 +83,7 @@ class Assignment(object):
         self.password = other.password
         self.macs = set(self.macs + other.macs)
 
-    def mab(self, mac, vlan=None):
+    def mab(self, macs, vlan=None):
         """Set a MAC as MAB."""
         v = vlan
         if vlan is None:
@@ -92,7 +92,11 @@ class Assignment(object):
             raise Exception("mab before vlan assigned")
         if self._bypass is None:
             self._bypass = {}
-        self._bypass[mac] = v
+        m = [macs]
+        if isinstance(macs, list):
+            m = macs
+        for mac in m:
+            self._bypass[mac] = v
 
     def bypassed(self):
         """Get MAB bypassed MACs."""
