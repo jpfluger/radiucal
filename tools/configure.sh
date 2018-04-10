@@ -58,7 +58,7 @@ if [ -e $HASH ]; then
     if [ -e $PREV ]; then
         diff -u $PREV $HASH > /dev/null
         diffed=$?
-        if [ $IS_LOCAL -eq 1 ]; then
+        if [ $diffed -ne 0 ] && [ $IS_LOCAL -eq 1 ]; then
             first=1
             for f in $(echo "eap_users manifest audit.csv"); do
                 fname=${BIN}$f
