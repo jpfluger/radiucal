@@ -58,6 +58,26 @@ if [ -e $HASH ]; then
     if [ -e $PREV ]; then
         diff -u $PREV $HASH > /dev/null
         diffed=$?
+        if [ $IS_LOCAL -eq 1 ]; then
+            first=1
+            for f in $(echo "eap_users manifest audit.csv"); do
+                fname=${BIN}$f
+                p=$fname.prev
+                if [ -e $fname ]; then
+                    if [ -e $p ]; then
+                        if [ $first -eq 1 ]; then
+                            echo
+                            echo "showing diff"
+                            echo "============"
+                            first=0
+                        fi
+                        diff -u $p $fname
+                        echo
+                    fi
+                    cp $fname $p
+                fi
+            done
+        fi
     fi
 fi
 
