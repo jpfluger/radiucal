@@ -12,6 +12,9 @@ import (
 	"sync"
 )
 
+type umac struct {
+}
+
 var (
 	cache    map[string]bool = make(map[string]bool)
 	lock     *sync.Mutex     = new(sync.Mutex)
@@ -20,22 +23,23 @@ var (
 	debug    bool
 	db       string
 	logs     string
+	Plugin   umac
 )
 
-func Reload() {
+func (l *umac) Reload() {
 	lock.Lock()
 	defer lock.Unlock()
 	cache = make(map[string]bool)
 }
 
-func Setup(ctx *plugins.PluginContext) {
+func (l *umac) Setup(ctx *plugins.PluginContext) {
 	canCache = ctx.Cache
 	debug = ctx.Debug
 	logs = ctx.Logs
 	db = filepath.Join(ctx.Lib, "users")
 }
 
-func Auth(packet *radius.Packet) bool {
+func (l *umac) Auth(packet *radius.Packet) bool {
 	return checkUserMac(packet) != nil
 }
 

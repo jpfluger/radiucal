@@ -6,19 +6,23 @@ import (
 	"log"
 )
 
-func Reload() {
+type tracer struct {
 }
 
-func Setup(ctx *plugins.PluginContext) {
+var Plugin tracer
 
+func (t *tracer) Reload() {
 }
 
-func Auth(packet *radius.Packet) bool {
+func (t *tracer) Setup(ctx *plugins.PluginContext) {
+}
+
+func (t *tracer) Auth(packet *radius.Packet) bool {
 	dump("auth", packet)
 	return true
 }
 
-func Accounting(packet *radius.Packet) {
+func (t *tracer) Account(packet *radius.Packet) {
 	dump("accounting", packet)
 }
 

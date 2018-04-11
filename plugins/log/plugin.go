@@ -8,23 +8,27 @@ import (
 )
 
 var (
-	lock *sync.Mutex = new(sync.Mutex)
-	logs string
+	lock   *sync.Mutex = new(sync.Mutex)
+	logs   string
+	Plugin logger
 )
 
-func Reload() {
+type logger struct {
 }
 
-func Setup(ctx *plugins.PluginContext) {
+func (l *logger) Reload() {
+}
+
+func (l *logger) Setup(ctx *plugins.PluginContext) {
 	logs = ctx.Logs
 }
 
-func Auth(packet *radius.Packet) bool {
+func (l *logger) Auth(packet *radius.Packet) bool {
 	write("auth", packet)
 	return true
 }
 
-func Accounting(packet *radius.Packet) {
+func (l *logger) Accounting(packet *radius.Packet) {
 	write("accounting", packet)
 }
 
