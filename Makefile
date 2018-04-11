@@ -25,6 +25,7 @@ radiucal:
 
 format:
 	@echo $(SRC)
+	gofmt -l $(SRC)
 	exit $(shell gofmt -l $(SRC) | wc -l)
 
 clean:
