@@ -9,6 +9,7 @@ import (
 
 var (
 	lock *sync.Mutex = new(sync.Mutex)
+	logs string
 )
 
 func Reload() {
@@ -31,7 +32,7 @@ func write(mode string, packet *radius.Packet) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
-		f, t := plugins.DatedFile(nil, mode)
+		f, t := plugins.DatedFile(logs, mode)
 		if f == nil {
 			return
 		}
