@@ -1,11 +1,13 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 	"layeh.com/radius"
 	"log"
 	"os"
 	"path/filepath"
+	"plugin"
 	"strings"
 	"time"
 	"unicode"
@@ -83,4 +85,51 @@ func PathExists(path string) bool {
 	} else {
 		return true
 	}
+}
+
+func LoadPreAuthPlugin(path string, ctx *PluginContext) (PreAuth, error) {
+	p, err := loadPlugin(path, ctx)
+	if err != nil {
+		return nil, err
+	}
+	if p == nil {
+		return nil, errors.New(fmt.Sprintf("%s is not a preauth plugin"))
+	}
+	return p.(PreAuth), nil
+}
+
+func LoadAccountingPlugin(path string, ctx *PluginContext) (Accounting, error) {
+	a, err := loadPlugin(path, ctx)
+	if err != nil {
+		return nil, err
+	}
+	if a == nil {
+		return nil, errors.New(fmt.Sprintf("%s is not an accounting plugin"))
+	}
+	return a.(Accounting), nil
+}
+
+func loadPlugin(path string, ctx *PluginContext) (Module, error) {
+	p, err := plugin.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	v, err := p.Lookup("Plugin")
+	if err != nil {
+		return nil, err
+	}
+	var mod Module
+	mod, ok := v.(Module)
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("unable to load plugin %s", path))
+	}
+	switch t := mod.(type) {
+	default:
+		return nil, errors.New(fmt.Sprintf("unknown type: %T", t))
+	case Accounting:
+		return t.(Accounting), nil
+	case PreAuth:
+		return t.(PreAuth), nil
+	}
+	return mod, nil
 }
