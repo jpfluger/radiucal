@@ -23,10 +23,16 @@ var (
 )
 
 func Reload() {
+	lock.Lock()
+	defer lock.Unlock()
+	cache = make(map[string]bool)
 }
 
 func Setup(ctx *plugins.PluginContext) {
-
+	canCache = ctx.Cache
+	debug = ctx.Debug
+	logs = ctx.Logs
+	db = filepath.Join(ctx.Lib, "users")
 }
 
 func Auth(packet *radius.Packet) bool {

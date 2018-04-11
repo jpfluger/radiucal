@@ -16,7 +16,7 @@ func Reload() {
 }
 
 func Setup(ctx *plugins.PluginContext) {
-
+	logs = ctx.Logs
 }
 
 func Auth(packet *radius.Packet) bool {

@@ -12,10 +12,14 @@ import (
 )
 
 type PluginContext struct {
+	// Enable debugging in plugins
 	Debug bool
+	// Allow plugins to cache data
 	Cache bool
-	Logs  string
-	Lib   string
+	// Location of logs directory
+	Logs string
+	// Location of the general lib directory
+	Lib string
 }
 
 type Module interface {
