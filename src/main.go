@@ -4,20 +4,15 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"flag"
 	"fmt"
 	"layeh.com/radius"
-	. "layeh.com/radius/rfc2865"
 	"log"
 	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"sync"
-	"time"
-	"unicode"
 )
 
 const bSize = 1500
@@ -36,19 +31,9 @@ var (
 	preauthed     map[string]bool        = make(map[string]bool)
 )
 
-type authmode struct {
-	log     bool
-	enabled bool
-}
-
 type context struct {
-	logs    string
-	db      string
-	debug   bool
-	preauth *authmode
-	secret  string
-	audit   bool
-	cache   bool
+	debug  bool
+	secret string
 }
 
 type connection struct {
@@ -106,148 +91,6 @@ func runConnection(conn *connection) {
 	}
 }
 
-func clean(in string) string {
-	result := ""
-	for _, c := range strings.ToLower(in) {
-		if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' {
-			result = result + string(c)
-		}
-	}
-	return result
-}
-
-func preauth(b string, ctx *context) error {
-	p, err := radius.Parse([]byte(b), []byte(ctx.secret))
-	if err != nil {
-		// we can either parse or not understand
-		// if we don't understand there is nothing to look at anyway
-		return nil
-	}
-	username, err := UserName_LookupString(p)
-	if err != nil {
-		return err
-	}
-	calling, err := CallingStationID_LookupString(p)
-	if err != nil {
-		return err
-	}
-	username = clean(username)
-	calling = clean(calling)
-	if ctx.audit {
-		go auditLog("auth", ctx, p)
-	}
-	if ctx.debug {
-		go dump(ctx, p, printDump)
-	}
-	fqdn := fmt.Sprintf("%s.%s", username, calling)
-	preLock.Lock()
-	good, ok := preauthed[fqdn]
-	preLock.Unlock()
-	if ctx.cache && ok {
-		if ctx.debug {
-			log.Println("object is preauthed")
-		}
-		if good {
-			return nil
-		} else {
-			return errors.New(fmt.Sprintf("%s is blacklisted", fqdn))
-		}
-	}
-	path := filepath.Join(ctx.db, fqdn)
-	result := "passed"
-	var failure error
-	res := pathExists(path)
-	preLock.Lock()
-	preauthed[fqdn] = res
-	preLock.Unlock()
-	if !res {
-		failure = errors.New(fmt.Sprintf("failed preauth: %s %s", username, calling))
-		result = "failed"
-	}
-	if ctx.preauth.log {
-		go mark(ctx, result, username, calling, p)
-	}
-	return failure
-}
-
-func auditLog(id string, ctx *context, p *radius.Packet) {
-	auditLock.Lock()
-	defer auditLock.Unlock()
-	f, t := getFile(ctx, id)
-	if f == nil {
-		return
-	}
-	fxn := func(data []string) {
-		output := fmt.Sprintf("id -> %s \n", id)
-		for _, d := range data {
-			output = output + fmt.Sprintf("%s\n", d)
-		}
-		formatLog(f, t, id, output)
-	}
-	dump(ctx, p, fxn)
-}
-
-func printDump(data []string) {
-	for _, d := range data {
-		log.Println(d)
-	}
-}
-
-type dumpCallback func(data []string)
-
-func dump(ctx *context, p *radius.Packet, callback dumpCallback) {
-	var datum []string
-	for t, a := range p.Attributes {
-		datum = append(datum, fmt.Sprintf("Type: %d", t))
-		for _, s := range a {
-			str := true
-			val := string(s)
-			for _, c := range val {
-				if !unicode.IsPrint(c) {
-					str = false
-					break
-				}
-			}
-			if !str {
-				val = fmt.Sprintf("(hex) %x", s)
-			}
-			datum = append(datum, fmt.Sprintf("Value: %s", val))
-		}
-	}
-	if len(datum) > 0 {
-		callback(datum)
-	}
-}
-
-func formatLog(f *os.File, t time.Time, indicator, message string) {
-	f.Write([]byte(fmt.Sprintf("%s [%s] %s\n", t.Format("2006-01-02T15:04:05"), strings.ToUpper(indicator), message)))
-}
-
-func getFile(ctx *context, name string) (*os.File, time.Time) {
-	t := time.Now()
-	logPath := filepath.Join(ctx.logs, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
-	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
-	if logError(fmt.Sprintf("logging: %s", name), err) {
-		return nil, t
-	}
-	return f, t
-}
-
-func mark(ctx *context, result, user, calling string, p *radius.Packet) {
-	nas := clean(NASIdentifier_GetString(p))
-	if len(nas) == 0 {
-		nas = "unknown"
-	}
-	markLock.Lock()
-	defer markLock.Unlock()
-	f, t := getFile(ctx, "audit")
-	if f == nil {
-		return
-	}
-	defer f.Close()
-	formatLog(f, t, result, fmt.Sprintf("%s (mac:%s) (nas:%s)", user, calling, nas))
-}
-
 func runProxy(ctx *context) {
 	if ctx.debug {
 		log.Println("=============WARNING==================")
@@ -279,16 +122,7 @@ func runProxy(ctx *context) {
 		} else {
 			mutex.Unlock()
 		}
-		if ctx.preauth.enabled {
-			audit := string(buffer[:n])
-			err = preauth(audit, ctx)
-			if err != nil {
-				if ctx.debug {
-					log.Println(err)
-				}
-				continue
-			}
-		}
+		// TODO: cut-in preauth plugins here
 		_, err = conn.server.Write(buffer[0:n])
 		logError("server write", err)
 	}
@@ -324,12 +158,8 @@ func parseSecrets(secretFile string) string {
 
 func reload(ctx *context) {
 	log.Println("received SIGINT")
-	if ctx.preauth.enabled && ctx.cache {
-		log.Println("clearing preauth cache")
-		preLock.Lock()
-		preauthed = make(map[string]bool)
-		preLock.Unlock()
-	}
+	// TODO: cut-in preauth reloads here
+	// TODO: cut-in acct reloads here
 }
 
 func accounting(ctx *context) {
@@ -340,12 +170,12 @@ func accounting(ctx *context) {
 			continue
 		}
 
-		p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
+		_, err = radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
 		if err != nil {
 			// unable to read/parse this packet so move on
 			continue
 		}
-		go auditLog("acct", ctx, p)
+		// TODO: cut-in acct plugins here
 	}
 }
 
@@ -355,27 +185,18 @@ func main() {
 	var port = flag.Int("port", 1812, "Listening port")
 	var to = flag.Int("to", 1814, "Server (to) port")
 	var host = flag.String("host", "localhost", "Server address")
-	var db = flag.String("db", lib+"users/", "user.mac directory")
-	var logDir = flag.String("log", lib+"log/", "audit logging")
 	var debug = flag.Bool("debug", false, "debug mode")
-	var cache = flag.Bool("cache", true, "enable caching")
-	var pre = flag.Bool("preauth", true, "preauth checks")
-	var preLog = flag.Bool("preauth-log", true, "preauth logging")
 	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
-	var audit = flag.Bool("audit", false, "dump auth requests for auditing")
 	var acct = flag.Bool("accounting", false, "run as an account server")
+	// TODO: configuration parsing and defaults
 	flag.Parse()
-	if !pathExists(*db) || !pathExists(*logDir) {
-		panic("missing required directory")
-	}
 	addr := fmt.Sprintf("%s:%d", *host, *to)
 	err := setup(addr, *port)
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
 	secret := parseSecrets(*secrets)
-	preauthing := &authmode{enabled: *pre, log: *preLog}
-	ctx := &context{db: *db, logs: *logDir, debug: *debug, preauth: preauthing, secret: secret, audit: *audit, cache: *cache}
+	ctx := &context{debug: *debug, secret: secret}
 	if *acct {
 		log.Println("accounting mode")
 		accounting(ctx)
