@@ -21,9 +21,8 @@ func (t *tracer) Name() string {
 func (t *tracer) Setup(ctx *plugins.PluginContext) {
 }
 
-func (t *tracer) Auth(packet *radius.Packet) bool {
+func (t *tracer) Auth(packet *radius.Packet) {
 	dump("auth", packet)
-	return true
 }
 
 func (t *tracer) Account(packet *radius.Packet) {

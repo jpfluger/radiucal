@@ -43,7 +43,7 @@ func (l *umac) Setup(ctx *plugins.PluginContext) {
 	db = filepath.Join(ctx.Lib, "users")
 }
 
-func (l *umac) Auth(packet *radius.Packet) bool {
+func (l *umac) Pre(packet *radius.Packet) bool {
 	return checkUserMac(packet) == nil
 }
 

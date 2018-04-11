@@ -27,9 +27,8 @@ func (l *logger) Setup(ctx *plugins.PluginContext) {
 	logs = ctx.Logs
 }
 
-func (l *logger) Auth(packet *radius.Packet) bool {
+func (l *logger) Auth(packet *radius.Packet) {
 	write("auth", packet)
-	return true
 }
 
 func (l *logger) Account(packet *radius.Packet) {

@@ -33,9 +33,11 @@ type context struct {
 	secret   string
 	preauths []plugins.PreAuth
 	accts    []plugins.Accounting
+	auths    []plugins.Authing
 	// shortcuts
 	preauth bool
 	acct    bool
+	auth    bool
 }
 
 type connection struct {
@@ -124,23 +126,30 @@ func runProxy(ctx *context) {
 		} else {
 			mutex.Unlock()
 		}
-		if ctx.preauth {
+		if ctx.preauth || ctx.auth {
 			p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
 			// we may not be able to always read a packet during conversation
 			// especially during initial EAP phases
 			// we let that go
 			if err == nil {
-				valid := true
-				for _, mod := range ctx.preauths {
-					if mod.Auth(p) {
+				if ctx.preauth {
+					valid := true
+					for _, mod := range ctx.preauths {
+						if mod.Pre(p) {
+							continue
+						}
+						valid = false
+						log.Println(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
+						break
+					}
+					if !valid {
 						continue
 					}
-					valid = false
-					log.Println(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
-					break
 				}
-				if !valid {
-					continue
+				if ctx.auth {
+					for _, mod := range ctx.auths {
+						mod.Auth(p)
+					}
 				}
 			}
 		}
@@ -233,6 +242,7 @@ func main() {
 	ctx := &context{debug: *debug, secret: secret}
 
 	// TODO: until we're ready to switch to configs
+	// TODO: handle auths as well
 	pAcct := []string{"log", "trace"}
 	pAuth := []string{"log", "trace", "usermac"}
 	pCtx := &plugins.PluginContext{}

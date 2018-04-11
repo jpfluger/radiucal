@@ -32,7 +32,12 @@ type Module interface {
 
 type PreAuth interface {
 	Module
-	Auth(*radius.Packet) bool
+	Pre(*radius.Packet) bool
+}
+
+type Authing interface {
+	Module
+	Auth(*radius.Packet)
 }
 
 type Accounting interface {
