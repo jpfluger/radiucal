@@ -98,19 +98,21 @@ func LoadPreAuthPlugin(path string, ctx *PluginContext) (PreAuth, error) {
 	if err != nil {
 		return nil, err
 	}
-	if p == nil {
-		return nil, errors.New(fmt.Sprintf("%s is not a preauth plugin"))
-	}
 	return p.(PreAuth), nil
+}
+
+func LoadAuthingPlugin(path string, ctx *PluginContext) (Authing, error) {
+	a, err := loadPlugin(path, ctx)
+	if err != nil {
+		return nil, err
+	}
+	return a.(Authing), nil
 }
 
 func LoadAccountingPlugin(path string, ctx *PluginContext) (Accounting, error) {
 	a, err := loadPlugin(path, ctx)
 	if err != nil {
 		return nil, err
-	}
-	if a == nil {
-		return nil, errors.New(fmt.Sprintf("%s is not an accounting plugin"))
 	}
 	return a.(Accounting), nil
 }
@@ -137,5 +139,7 @@ func loadPlugin(path string, ctx *PluginContext) (Module, error) {
 		return t.(Accounting), nil
 	case PreAuth:
 		return t.(PreAuth), nil
+	case Authing:
+		return t.(Authing), nil
 	}
 }
