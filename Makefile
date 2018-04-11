@@ -2,7 +2,7 @@ BIN=bin/
 SOURCE=src/
 PLUGIN=plugins/
 SRC=$(shell find $(SOURCE) -type f) $(shell find $(PLUGIN) -type f)
-PLUGINS=$(shell find $(PLUGIN) -type f | grep -v "common.go" | sed "s/\.go$$//g")
+PLUGINS=$(shell ls $(PLUGIN) | grep -v "common.go")
 
 VERSION=
 ifeq ($(VERSION),)
@@ -18,7 +18,7 @@ deps:
 
 $(PLUGINS):
 	@echo $@
-	go build --buildmode=plugin -o $(BIN)$@ $(PLUGIN)$@.go
+	go build --buildmode=plugin -o $(BIN)$@.so $(PLUGIN)$@/plugin.go
 
 radiucal:
 	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(SOURCE)main.go
