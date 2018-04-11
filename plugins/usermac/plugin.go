@@ -44,7 +44,7 @@ func (l *umac) Setup(ctx *plugins.PluginContext) {
 }
 
 func (l *umac) Auth(packet *radius.Packet) bool {
-	return checkUserMac(packet) != nil
+	return checkUserMac(packet) == nil
 }
 
 func clean(in string) string {

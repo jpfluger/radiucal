@@ -132,11 +132,12 @@ func runProxy(ctx *context) {
 			if err == nil {
 				valid := true
 				for _, mod := range ctx.preauths {
-					if !mod.Auth(p) {
-						valid = false
-						log.Println(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
-						break
+					if mod.Auth(p) {
+						continue
 					}
+					valid = false
+					log.Println(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
+					break
 				}
 				if !valid {
 					continue
