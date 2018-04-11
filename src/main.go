@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/epiphyte/radiucal/plugins"
 	"layeh.com/radius"
 	"log"
 	"net"
@@ -27,26 +28,11 @@ var (
 	mutex         *sync.Mutex            = new(sync.Mutex)
 )
 
-type module interface {
-	reload()
-	setup(bool)
-}
-
-type preauth interface {
-	module
-	auth(*radius.Packet) bool
-}
-
-type accounting interface {
-	module
-	acct(*radius.Packet)
-}
-
 type context struct {
 	debug    bool
 	secret   string
-	preauths []preauth
-	accts    []accounting
+	preauths []plugins.PreAuth
+	accts    []plugins.Accounting
 	// shortcuts
 	preauth bool
 	acct    bool
@@ -146,7 +132,7 @@ func runProxy(ctx *context) {
 			if err == nil {
 				valid := true
 				for _, mod := range ctx.preauths {
-					if !mod.auth(p) {
+					if !mod.Auth(p) {
 						valid = false
 						log.Println("unauthorized")
 						break
@@ -194,12 +180,12 @@ func reload(ctx *context) {
 	log.Println("received SIGINT")
 	if ctx.preauth {
 		for _, mod := range ctx.preauths {
-			mod.reload()
+			mod.Reload()
 		}
 	}
 	if ctx.acct {
 		for _, mod := range ctx.accts {
-			mod.reload()
+			mod.Reload()
 		}
 	}
 }
@@ -219,7 +205,7 @@ func account(ctx *context) {
 		}
 		if ctx.acct {
 			for _, mod := range ctx.accts {
-				mod.acct(p)
+				mod.Account(p)
 			}
 		}
 	}
