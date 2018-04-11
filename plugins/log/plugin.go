@@ -28,7 +28,7 @@ func (l *logger) Auth(packet *radius.Packet) bool {
 	return true
 }
 
-func (l *logger) Accounting(packet *radius.Packet) {
+func (l *logger) Account(packet *radius.Packet) {
 	write("accounting", packet)
 }
 

@@ -227,8 +227,40 @@ func main() {
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
+
 	secret := parseSecrets(*secrets)
 	ctx := &context{debug: *debug, secret: secret}
+
+	// TODO: until we're ready to switch to configs
+	pAcct := []string{"log", "trace"}
+	pAuth := []string{"log", "trace", "usermac"}
+	pCtx := &plugins.PluginContext{}
+	pCtx.Debug = ctx.debug
+	pCtx.Cache = true
+	pCtx.Logs = lib + "logs"
+	pCtx.Lib = lib
+	for _, a := range pAuth {
+		ctx.preauth = true
+		mod, err := plugins.LoadPreAuthPlugin(lib+"plugins/"+a+".so", pCtx)
+		if err != nil {
+			log.Println("unable to load preauth plugin")
+			log.Println(err)
+			panic("unable to load plugin")
+		}
+		ctx.preauths = append(ctx.preauths, mod)
+	}
+	for _, a := range pAcct {
+		ctx.acct = true
+		mod, err := plugins.LoadAccountingPlugin(lib+"plugins/"+a+".so", pCtx)
+		if err != nil {
+			log.Println("unable to load accounting plugin")
+			log.Println(err)
+			panic("unable to load plugin")
+		}
+		ctx.accts = append(ctx.accts, mod)
+	}
+	// TODO: end ^ todo
+
 	if *acct {
 		log.Println("accounting mode")
 		account(ctx)
