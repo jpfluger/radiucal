@@ -15,6 +15,10 @@ import (
 type umac struct {
 }
 
+func (l *umac) Name() string {
+	return "usermac"
+}
+
 var (
 	cache    map[string]bool = make(map[string]bool)
 	lock     *sync.Mutex     = new(sync.Mutex)

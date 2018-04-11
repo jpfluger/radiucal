@@ -27,6 +27,7 @@ type PluginContext struct {
 type Module interface {
 	Reload()
 	Setup(*PluginContext)
+	Name() string
 }
 
 type PreAuth interface {

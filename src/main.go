@@ -247,6 +247,7 @@ func main() {
 			log.Println(err)
 			panic("unable to load plugin")
 		}
+		log.Println("loaded", mod.Name())
 		ctx.preauths = append(ctx.preauths, mod)
 	}
 	for _, a := range pAcct {
@@ -257,6 +258,7 @@ func main() {
 			log.Println(err)
 			panic("unable to load plugin")
 		}
+		log.Println("loaded", mod.Name())
 		ctx.accts = append(ctx.accts, mod)
 	}
 	// TODO: end ^ todo

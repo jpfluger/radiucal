@@ -16,6 +16,10 @@ var (
 type logger struct {
 }
 
+func (l *logger) Name() string {
+	return "logger"
+}
+
 func (l *logger) Reload() {
 }
 

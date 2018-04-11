@@ -14,6 +14,10 @@ var Plugin tracer
 func (t *tracer) Reload() {
 }
 
+func (t *tracer) Name() string {
+	return "tracer"
+}
+
 func (t *tracer) Setup(ctx *plugins.PluginContext) {
 }
 
