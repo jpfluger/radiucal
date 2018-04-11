@@ -25,10 +25,6 @@ var (
 	serverAddress *net.UDPAddr
 	clients       map[string]*connection = make(map[string]*connection)
 	mutex         *sync.Mutex            = new(sync.Mutex)
-	markLock      *sync.Mutex            = new(sync.Mutex)
-	auditLock     *sync.Mutex            = new(sync.Mutex)
-	preLock       *sync.Mutex            = new(sync.Mutex)
-	preauthed     map[string]bool        = make(map[string]bool)
 )
 
 type context struct {
