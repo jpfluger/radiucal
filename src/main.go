@@ -243,34 +243,31 @@ func main() {
 
 	// TODO: until we're ready to switch to configs
 	// TODO: handle auths as well
-	pAcct := []string{"log", "trace"}
-	pAuth := []string{"log", "trace", "usermac"}
 	pCtx := &plugins.PluginContext{}
 	pCtx.Debug = ctx.debug
 	pCtx.Cache = true
 	pCtx.Logs = lib + "logs"
 	pCtx.Lib = lib
-	for _, a := range pAuth {
-		ctx.preauth = true
-		mod, err := plugins.LoadPreAuthPlugin(lib+"plugins/"+a+".so", pCtx)
+	for _, p := range []string{"log", "trace", "usermac"} {
+		obj, err := plugins.LoadPlugin(lib+"plugins/"+p+".so", pCtx)
 		if err != nil {
-			log.Println("unable to load preauth plugin")
+			log.Println("unable to load plugin")
+			log.Println(p)
 			log.Println(err)
 			panic("unable to load plugin")
 		}
-		log.Println("loaded", mod.Name())
-		ctx.preauths = append(ctx.preauths, mod)
-	}
-	for _, a := range pAcct {
-		ctx.acct = true
-		mod, err := plugins.LoadAccountingPlugin(lib+"plugins/"+a+".so", pCtx)
-		if err != nil {
-			log.Println("unable to load accounting plugin")
-			log.Println(err)
-			panic("unable to load plugin")
+		if i, ok := obj.(plugins.Accounting); ok {
+			ctx.acct = true
+			ctx.accts = append(ctx.accts, i)
 		}
-		log.Println("loaded", mod.Name())
-		ctx.accts = append(ctx.accts, mod)
+		if i, ok := obj.(plugins.Authing); ok {
+			ctx.auth = true
+			ctx.auths = append(ctx.auths, i)
+		}
+		if i, ok := obj.(plugins.PreAuth); ok {
+			ctx.preauth = true
+			ctx.preauths = append(ctx.preauths, i)
+		}
 	}
 	// TODO: end ^ todo
 

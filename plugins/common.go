@@ -93,31 +93,7 @@ func PathExists(path string) bool {
 	}
 }
 
-func LoadPreAuthPlugin(path string, ctx *PluginContext) (PreAuth, error) {
-	p, err := loadPlugin(path, ctx)
-	if err != nil {
-		return nil, err
-	}
-	return p.(PreAuth), nil
-}
-
-func LoadAuthingPlugin(path string, ctx *PluginContext) (Authing, error) {
-	a, err := loadPlugin(path, ctx)
-	if err != nil {
-		return nil, err
-	}
-	return a.(Authing), nil
-}
-
-func LoadAccountingPlugin(path string, ctx *PluginContext) (Accounting, error) {
-	a, err := loadPlugin(path, ctx)
-	if err != nil {
-		return nil, err
-	}
-	return a.(Accounting), nil
-}
-
-func loadPlugin(path string, ctx *PluginContext) (Module, error) {
+func LoadPlugin(path string, ctx *PluginContext) (Module, error) {
 	p, err := plugin.Open(path)
 	if err != nil {
 		return nil, err
@@ -132,6 +108,7 @@ func loadPlugin(path string, ctx *PluginContext) (Module, error) {
 		return nil, errors.New(fmt.Sprintf("unable to load plugin %s", path))
 	}
 	mod.Setup(ctx)
+	return mod, nil
 	switch t := mod.(type) {
 	default:
 		return nil, errors.New(fmt.Sprintf("unknown type: %T", t))
