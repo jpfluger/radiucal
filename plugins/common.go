@@ -123,6 +123,7 @@ func loadPlugin(path string, ctx *PluginContext) (Module, error) {
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("unable to load plugin %s", path))
 	}
+	mod.Setup(ctx)
 	switch t := mod.(type) {
 	default:
 		return nil, errors.New(fmt.Sprintf("unknown type: %T", t))
@@ -131,5 +132,4 @@ func loadPlugin(path string, ctx *PluginContext) (Module, error) {
 	case PreAuth:
 		return t.(PreAuth), nil
 	}
-	return mod, nil
 }
