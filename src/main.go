@@ -27,9 +27,29 @@ var (
 	mutex         *sync.Mutex            = new(sync.Mutex)
 )
 
+type module interface {
+	reload()
+	setup(bool)
+}
+
+type preauth interface {
+	module
+	auth(*radius.Packet) bool
+}
+
+type accounting interface {
+	module
+	acct(*radius.Packet)
+}
+
 type context struct {
-	debug  bool
-	secret string
+	debug    bool
+	secret   string
+	preauths []preauth
+	accts    []accounting
+	// shortcuts
+	preauth bool
+	acct    bool
 }
 
 type connection struct {
@@ -118,7 +138,25 @@ func runProxy(ctx *context) {
 		} else {
 			mutex.Unlock()
 		}
-		// TODO: cut-in preauth plugins here
+		if ctx.preauth {
+			p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
+			// we may not be able to always read a packet during conversation
+			// especially during initial EAP phases
+			// we let that go
+			if err == nil {
+				valid := true
+				for _, mod := range ctx.preauths {
+					if !mod.auth(p) {
+						valid = false
+						log.Println("unauthorized")
+						break
+					}
+				}
+				if !valid {
+					continue
+				}
+			}
+		}
 		_, err = conn.server.Write(buffer[0:n])
 		logError("server write", err)
 	}
@@ -154,11 +192,19 @@ func parseSecrets(secretFile string) string {
 
 func reload(ctx *context) {
 	log.Println("received SIGINT")
-	// TODO: cut-in preauth reloads here
-	// TODO: cut-in acct reloads here
+	if ctx.preauth {
+		for _, mod := range ctx.preauths {
+			mod.reload()
+		}
+	}
+	if ctx.acct {
+		for _, mod := range ctx.accts {
+			mod.reload()
+		}
+	}
 }
 
-func accounting(ctx *context) {
+func account(ctx *context) {
 	var buffer [bSize]byte
 	for {
 		n, _, err := proxy.ReadFromUDP(buffer[0:])
@@ -166,12 +212,16 @@ func accounting(ctx *context) {
 			continue
 		}
 
-		_, err = radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
+		p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
 		if err != nil {
 			// unable to read/parse this packet so move on
 			continue
 		}
-		// TODO: cut-in acct plugins here
+		if ctx.acct {
+			for _, mod := range ctx.accts {
+				mod.acct(p)
+			}
+		}
 	}
 }
 
@@ -195,7 +245,7 @@ func main() {
 	ctx := &context{debug: *debug, secret: secret}
 	if *acct {
 		log.Println("accounting mode")
-		accounting(ctx)
+		account(ctx)
 	} else {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
