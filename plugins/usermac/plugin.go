@@ -30,7 +30,7 @@ func Setup(ctx *plugins.PluginContext) {
 }
 
 func Auth(packet *radius.Packet) bool {
-	return true
+	return checkUserMac(packet) != nil
 }
 
 func clean(in string) string {
@@ -43,7 +43,7 @@ func clean(in string) string {
 	return result
 }
 
-func attributesUserMac(p *radius.Packet) error {
+func checkUserMac(p *radius.Packet) error {
 	username, err := UserName_LookupString(p)
 	if err != nil {
 		return err
