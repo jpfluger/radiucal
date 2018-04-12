@@ -130,8 +130,8 @@ func runProxy(ctx *context) {
 			// especially during initial EAP phases
 			// we let that go
 			if err == nil {
+				valid := true
 				if ctx.preauth {
-					valid := true
 					for _, mod := range ctx.preauths {
 						if mod.Pre(p) {
 							continue
@@ -140,14 +140,14 @@ func runProxy(ctx *context) {
 						goutils.WriteDebug(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
 						break
 					}
-					if !valid {
-						continue
-					}
 				}
 				if ctx.auth {
 					for _, mod := range ctx.auths {
 						mod.Auth(p)
 					}
+				}
+				if !valid {
+					continue
 				}
 			}
 		}
@@ -263,11 +263,12 @@ func main() {
 	mods := conf.GetArrayOrEmpty("plugins")
 	pCtx := &plugins.PluginContext{}
 	pCtx.Cache = true
-	pCtx.Logs = filepath.Join(lib, "logs")
+	pCtx.Logs = filepath.Join(lib, "log")
 	pCtx.Lib = lib
 	pPath := filepath.Join(lib, "plugins")
 	for _, p := range mods {
 		oPath := filepath.Join(pPath, fmt.Sprintf("%s.rd", p))
+		goutils.WriteInfo("loading plugin", p, oPath)
 		obj, err := plugins.LoadPlugin(oPath, pCtx)
 		if err != nil {
 			goutils.WriteError(fmt.Sprintf("unable to load plugin: %s", p), err)
