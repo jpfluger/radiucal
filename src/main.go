@@ -244,7 +244,6 @@ func main() {
 	// TODO: until we're ready to switch to configs
 	// TODO: handle auths as well
 	pCtx := &plugins.PluginContext{}
-	pCtx.Debug = ctx.debug
 	pCtx.Cache = true
 	pCtx.Logs = lib + "logs"
 	pCtx.Lib = lib

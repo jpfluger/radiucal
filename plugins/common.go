@@ -3,8 +3,8 @@ package plugins
 import (
 	"errors"
 	"fmt"
+	"github.com/epiphyte/goutils"
 	"layeh.com/radius"
-	"log"
 	"os"
 	"path/filepath"
 	"plugin"
@@ -14,8 +14,6 @@ import (
 )
 
 type PluginContext struct {
-	// Enable debugging in plugins
-	Debug bool
 	// Allow plugins to cache data
 	Cache bool
 	// Location of logs directory
@@ -73,9 +71,7 @@ func DatedFile(path, name string) (*os.File, time.Time) {
 	logPath := filepath.Join(path, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
 	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
 	if err != nil {
-		log.Println("unable to create file")
-		log.Println(logPath)
-		log.Println(err)
+		goutils.WriteError(fmt.Sprintf("unable to create file: %s", logPath), err)
 		return nil, t
 	}
 	return f, t
@@ -83,14 +79,6 @@ func DatedFile(path, name string) (*os.File, time.Time) {
 
 func FormatLog(f *os.File, t time.Time, indicator, message string) {
 	f.Write([]byte(fmt.Sprintf("%s [%s] %s\n", t.Format("2006-01-02T15:04:05"), strings.ToUpper(indicator), message)))
-}
-
-func PathExists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	} else {
-		return true
-	}
 }
 
 func LoadPlugin(path string, ctx *PluginContext) (Module, error) {

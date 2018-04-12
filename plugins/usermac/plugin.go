@@ -3,10 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/epiphyte/goutils"
 	"github.com/epiphyte/radiucal/plugins"
 	"layeh.com/radius"
 	. "layeh.com/radius/rfc2865"
-	"log"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -24,7 +24,6 @@ var (
 	lock     *sync.Mutex     = new(sync.Mutex)
 	fileLock *sync.Mutex     = new(sync.Mutex)
 	canCache bool
-	debug    bool
 	db       string
 	logs     string
 	Plugin   umac
@@ -38,7 +37,6 @@ func (l *umac) Reload() {
 
 func (l *umac) Setup(ctx *plugins.PluginContext) {
 	canCache = ctx.Cache
-	debug = ctx.Debug
 	logs = ctx.Logs
 	db = filepath.Join(ctx.Lib, "users")
 }
@@ -73,9 +71,7 @@ func checkUserMac(p *radius.Packet) error {
 	good, ok := cache[fqdn]
 	lock.Unlock()
 	if canCache && ok {
-		if debug {
-			log.Println("object is preauthed")
-		}
+		goutils.WriteDebug("object is preauthed", fqdn)
 		if good {
 			return nil
 		} else {
@@ -85,7 +81,7 @@ func checkUserMac(p *radius.Packet) error {
 	path := filepath.Join(db, fqdn)
 	result := "passed"
 	var failure error
-	res := plugins.PathExists(path)
+	res := goutils.PathExists(path)
 	lock.Lock()
 	cache[fqdn] = res
 	lock.Unlock()
