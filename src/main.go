@@ -12,12 +12,12 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 )
 
 const bSize = 1500
-const lib = "/var/lib/radiucal/"
 
 var vers = "master"
 
@@ -221,31 +221,54 @@ func account(ctx *context) {
 
 func main() {
 	goutils.WriteInfo(fmt.Sprintf("radiucal (%s)", vers))
-	var port = flag.Int("port", 1812, "Listening port")
-	var to = flag.Int("to", 1814, "Server (to) port")
-	var host = flag.String("host", "localhost", "Server address")
-	var debug = flag.Bool("debug", false, "debug mode")
-	var secrets = flag.String("secrets", lib+"secrets", "shared secret with hostapd")
-	var acct = flag.Bool("accounting", false, "run as an account server")
-	// TODO: configuration parsing and defaults
+	var config = flag.String("config", "/etc/radiucal/radiucal.conf", "Configuration file")
 	flag.Parse()
-	addr := fmt.Sprintf("%s:%d", *host, *to)
-	err := setup(addr, *port)
+	conf, err := goutils.LoadConfig(*config, goutils.NewConfigSettings())
+	if err != nil {
+		goutils.WriteError("unable to load config", err)
+		panic("invalid/unable to load config")
+	}
+	debug := conf.GetTrue("debug")
+	logOpts := goutils.NewLogOptions()
+	logOpts.Debug = debug
+	logOpts.Info = true
+	host := conf.GetStringOrDefault("host", "localhost")
+	var to int = 1814
+	accounting := conf.GetTrue("accounting")
+	defaultBind := 1812
+	if accounting {
+		defaultBind = 1813
+	} else {
+		to, err = conf.GetIntOrDefault("to", 1814)
+		if err != nil {
+			goutils.WriteError("unable to get bind-to", err)
+			panic("cannot bind to another socket")
+		}
+	}
+	bind, err := conf.GetIntOrDefault("bind", defaultBind)
+	if err != nil {
+		goutils.WriteError("unable to bind address", err)
+		panic("unable to bind")
+	}
+	addr := fmt.Sprintf("%s:%d", host, to)
+	err = setup(addr, bind)
 	if logError("proxy setup", err) {
 		panic("unable to proceed")
 	}
 
-	secret := parseSecrets(*secrets)
-	ctx := &context{debug: *debug, secret: secret}
-
-	// TODO: until we're ready to switch to configs
-	// TODO: handle auths as well
+	lib := conf.GetStringOrDefault("dir", "/var/lib/radiucal/")
+	secrets := filepath.Join(lib, "secrets")
+	secret := parseSecrets(secrets)
+	ctx := &context{debug: debug, secret: secret}
+	mods := conf.GetArrayOrEmpty("plugins")
 	pCtx := &plugins.PluginContext{}
 	pCtx.Cache = true
-	pCtx.Logs = lib + "logs"
+	pCtx.Logs = filepath.Join(lib, "logs")
 	pCtx.Lib = lib
-	for _, p := range []string{"log", "trace", "usermac"} {
-		obj, err := plugins.LoadPlugin(lib+"plugins/"+p+".so", pCtx)
+	pPath := filepath.Join(lib, "plugins")
+	for _, p := range mods {
+		oPath := filepath.Join(pPath, fmt.Sprintf("%s.rd", p))
+		obj, err := plugins.LoadPlugin(oPath, pCtx)
 		if err != nil {
 			goutils.WriteError(fmt.Sprintf("unable to load plugin: %s", p), err)
 			panic("unable to load plugin")
@@ -263,9 +286,8 @@ func main() {
 			ctx.preauths = append(ctx.preauths, i)
 		}
 	}
-	// TODO: end ^ todo
 
-	if *acct {
+	if accounting {
 		goutils.WriteInfo("accounting mode")
 		account(ctx)
 	} else {

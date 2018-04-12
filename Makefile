@@ -18,7 +18,7 @@ deps:
 
 $(PLUGINS):
 	@echo $@
-	go build --buildmode=plugin -o $(BIN)$@.so $(PLUGIN)$@/plugin.go
+	go build --buildmode=plugin -o $(BIN)$@.rd $(PLUGIN)$@/plugin.go
 
 radiucal:
 	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(SOURCE)main.go
