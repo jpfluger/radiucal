@@ -56,12 +56,21 @@ setup your `/etc/hostapd/hostapd.conf`
 systemctl enable --now hostapd.service
 ```
 
-if using radiucal (make sure to bind hostapd to not 1812 for radius)
+if using radiucal as a proxy (make sure to bind hostapd to not 1812 for radius)
 ```
-systemctl enable --now radiucal.service
-# for accounting
-systemctl enable --now radiucal-accounting.service
+# to use the default supplied proxy config
+ln -s /etc/radiucal/proxy.conf /etc/radiucal/radiucal.proxy.conf
+systemctl enable --now radiucal@proxy.service
 ```
+
+to run an accounting server via radiucal
+```
+# to use the default supplied accounting config
+ln -s /etc/radiucal/accounting.proxy.conf /etc/radiucal/radiucal.accounting.conf
+systemctl enable --now radiucal@accounting.service
+```
+
+you may view an example config for more settings: `/etc/radiucal/example.conf`
 
 ## setup/notes
 
