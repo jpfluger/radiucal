@@ -4,7 +4,7 @@ After=hostapd.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/radiucal
+ExecStart=/usr/bin/radiucal --config /etc/radiucal/radiucal.%i.conf
 
 [Install]
 WantedBy=multi-user.target
