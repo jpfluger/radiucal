@@ -289,17 +289,18 @@ func main() {
 		}
 	}
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for _ = range c {
+			reload(ctx)
+		}
+	}()
+
 	if accounting {
 		goutils.WriteInfo("accounting mode")
 		account(ctx)
 	} else {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
-		go func() {
-			for _ = range c {
-				reload(ctx)
-			}
-		}()
 		runProxy(ctx)
 	}
 }
