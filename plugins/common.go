@@ -53,16 +53,19 @@ func KeyValueStrings(packet *radius.Packet) []string {
 		for _, s := range a {
 			unknown := true
 			val := ""
-			i, err := radius.Integer(s)
-			if err == nil {
-				unknown = false
-				val = fmt.Sprintf("(int) %d", i)
-			}
-			if unknown {
+			if t == NASIPAddress_Type {
 				ip, err := radius.IPAddr(s)
 				if err == nil {
 					unknown = false
-					val = fmt.Sprintf("(ip) %s", string(ip))
+					val = fmt.Sprintf("(ip) %s", ip.String())
+				}
+			}
+
+			if unknown {
+				i, err := radius.Integer(s)
+				if err == nil {
+					unknown = false
+					val = fmt.Sprintf("(int) %d", i)
 				}
 			}
 

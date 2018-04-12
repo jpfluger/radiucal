@@ -100,6 +100,12 @@ func mark(result, user, calling string, p *radius.Packet) {
 	if len(nas) == 0 {
 		nas = "unknown"
 	}
+	nasipraw := NASIPAddress_Get(p)
+	nasip := "noip"
+	if nasipraw != nil {
+		nasip = nasipraw.String()
+	}
+	nasport := NASPort_Get(p)
 	fileLock.Lock()
 	defer fileLock.Unlock()
 	f, t := plugins.DatedFile(logs, "audit")
@@ -107,5 +113,5 @@ func mark(result, user, calling string, p *radius.Packet) {
 		return
 	}
 	defer f.Close()
-	plugins.FormatLog(f, t, result, fmt.Sprintf("%s (mac:%s) (nas:%s)", user, calling, nas))
+	plugins.FormatLog(f, t, result, fmt.Sprintf("%s (mac:%s) (nas:%s,ip:%s,port:%d)", user, calling, nas, nasip, nasport))
 }
