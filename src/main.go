@@ -232,6 +232,7 @@ func main() {
 	logOpts := goutils.NewLogOptions()
 	logOpts.Debug = debug
 	logOpts.Info = true
+	goutils.ConfigureLogging(logOpts)
 	host := conf.GetStringOrDefault("host", "localhost")
 	var to int = 1814
 	accounting := conf.GetTrue("accounting")
@@ -262,7 +263,7 @@ func main() {
 	ctx := &context{debug: debug, secret: secret}
 	mods := conf.GetArrayOrEmpty("plugins")
 	pCtx := &plugins.PluginContext{}
-	pCtx.Cache = true
+	pCtx.Cache = conf.GetTrue("cache")
 	pCtx.Logs = filepath.Join(lib, "log")
 	pCtx.Lib = lib
 	pPath := filepath.Join(lib, "plugins")

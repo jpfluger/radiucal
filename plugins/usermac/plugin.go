@@ -77,6 +77,8 @@ func checkUserMac(p *radius.Packet) error {
 		} else {
 			return errors.New(fmt.Sprintf("%s is blacklisted", fqdn))
 		}
+	} else {
+		goutils.WriteDebug("not preauthed", fqdn)
 	}
 	path := filepath.Join(db, fqdn)
 	result := "passed"
