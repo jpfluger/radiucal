@@ -11,10 +11,12 @@ endif
 export GOPATH := $(PWD)/vendor
 .PHONY: tools
 
-all: clean deps $(PLUGINS) radiucal tools format
+all: clean deps modules radiucal tools format
 
 deps:
 	git submodule update --init --recursive
+
+modules: $(PLUGINS)
 
 $(PLUGINS):
 	@echo $@
