@@ -6,9 +6,9 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/epiphyte/goutils"
 	"github.com/epiphyte/radiucal/plugins"
 	"layeh.com/radius"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -49,8 +49,7 @@ func logError(message string, err error) bool {
 	if err == nil {
 		return false
 	}
-	log.Println(fmt.Sprintf("[ERROR] %s", message))
-	log.Println(err)
+	goutils.WriteError(message, err)
 	return true
 }
 
@@ -97,13 +96,12 @@ func runConnection(conn *connection) {
 
 func runProxy(ctx *context) {
 	if ctx.debug {
-		log.Println("=============WARNING==================")
-		log.Println("debugging is enabled!")
-		log.Println("dumps from debugging may contain secrets")
-		log.Println("do NOT share debugging dumps")
-		log.Println("=============WARNING==================")
-		log.Println("secret")
-		log.Println(ctx.secret)
+		goutils.WriteInfo("=============WARNING==================")
+		goutils.WriteInfo("debugging is enabled!")
+		goutils.WriteInfo("dumps from debugging may contain secrets")
+		goutils.WriteInfo("do NOT share debugging dumps")
+		goutils.WriteInfo("=============WARNING==================")
+		goutils.WriteDebug("secret", ctx.secret)
 	}
 	var buffer [bSize]byte
 	for {
@@ -139,7 +137,7 @@ func runProxy(ctx *context) {
 							continue
 						}
 						valid = false
-						log.Println(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
+						goutils.WriteDebug(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
 						break
 					}
 					if !valid {
@@ -187,7 +185,7 @@ func parseSecrets(secretFile string) string {
 }
 
 func reload(ctx *context) {
-	log.Println("received SIGINT")
+	goutils.WriteInfo("received SIGINT")
 	if ctx.preauth {
 		for _, mod := range ctx.preauths {
 			mod.Reload()
@@ -222,8 +220,7 @@ func account(ctx *context) {
 }
 
 func main() {
-	log.SetFlags(0)
-	log.Println(fmt.Sprintf("radiucal (%s)", vers))
+	goutils.WriteInfo(fmt.Sprintf("radiucal (%s)", vers))
 	var port = flag.Int("port", 1812, "Listening port")
 	var to = flag.Int("to", 1814, "Server (to) port")
 	var host = flag.String("host", "localhost", "Server address")
@@ -250,9 +247,7 @@ func main() {
 	for _, p := range []string{"log", "trace", "usermac"} {
 		obj, err := plugins.LoadPlugin(lib+"plugins/"+p+".so", pCtx)
 		if err != nil {
-			log.Println("unable to load plugin")
-			log.Println(p)
-			log.Println(err)
+			goutils.WriteError(fmt.Sprintf("unable to load plugin: %s", p), err)
 			panic("unable to load plugin")
 		}
 		if i, ok := obj.(plugins.Accounting); ok {
@@ -271,14 +266,13 @@ func main() {
 	// TODO: end ^ todo
 
 	if *acct {
-		log.Println("accounting mode")
+		goutils.WriteInfo("accounting mode")
 		account(ctx)
 	} else {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		go func() {
-			for sig := range c {
-				log.Println("captured:", sig)
+			for _ = range c {
 				reload(ctx)
 			}
 		}()
