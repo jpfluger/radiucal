@@ -1,3 +1,6 @@
 [submodule "modules/radius"]
 	path = modules/radius
 	url = https://github.com/layeh/radius
+[submodule "modules/goutils"]
+	path = modules/goutils
+	url = https://github.com/epiphyte/goutils
