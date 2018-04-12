@@ -140,6 +140,7 @@ func LoadPlugin(path string, ctx *PluginContext) (Module, error) {
 	}
 }
 
+// rfc2865 only, get string names for types
 func resolveType(t radius.Type) string {
 	switch t {
 	case UserName_Type:
