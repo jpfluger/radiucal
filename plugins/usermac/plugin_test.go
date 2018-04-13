@@ -70,5 +70,7 @@ func TestUserMacCallback(t *testing.T) {
 	canCache = false
 	callback = []string{"echo"}
 	doCallback = true
-	m.Pre(p)
+	if !m.Pre(p) {
+		t.Error("should have authed")
+	}
 }
