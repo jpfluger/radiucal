@@ -222,6 +222,7 @@ func account(ctx *context) {
 func main() {
 	goutils.WriteInfo(fmt.Sprintf("radiucal (%s)", vers))
 	var config = flag.String("config", "/etc/radiucal/radiucal.conf", "Configuration file")
+	var instance = flag.String("instance", "", "Instance name")
 	flag.Parse()
 	conf, err := goutils.LoadConfig(*config, goutils.NewConfigSettings())
 	if err != nil {
@@ -232,6 +233,7 @@ func main() {
 	logOpts := goutils.NewLogOptions()
 	logOpts.Debug = debug
 	logOpts.Info = true
+	logOpts.Instance = *instance
 	goutils.ConfigureLogging(logOpts)
 	host := conf.GetStringOrDefault("host", "localhost")
 	var to int = 1814
