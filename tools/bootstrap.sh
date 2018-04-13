@@ -4,7 +4,7 @@ if [ ! -d "$PWD/users" ]; then
     exit 1
 fi
 DIR=/usr/share/radiucal/
-for s in $(echo "configure monitor reports"); do
+for s in $(echo "configure reports"); do
     rm -f $s
     p=$DIR/$s.sh
     if [ -e $p ]; then

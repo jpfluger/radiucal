@@ -39,7 +39,6 @@ _sig() {
 
 cat users/user_* | sha256sum | cut -d " " -f 1 > $HASH 
 if [ $IS_LOCAL -eq 0 ]; then
-    ./monitor
     daily=${IS_DAILY}.radius-$(date +%Y-%m-%d)
     if [ ! -e $daily ]; then
         _sig
