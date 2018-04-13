@@ -1,7 +1,7 @@
 BIN=bin/
 PLUGIN=plugins/
 MAIN=radiucal.go
-SRC=$(MAIN) $(shell find $(PLUGIN) -type f)
+SRC=$(MAIN) $(shell find $(PLUGIN) -type f) $(TESTS)
 PLUGINS=$(shell ls $(PLUGIN) | grep -v "common.go")
 
 VERSION=
@@ -21,6 +21,7 @@ modules: $(PLUGINS)
 $(PLUGINS):
 	@echo $@
 	go build --buildmode=plugin -o $(BIN)$@.rd $(PLUGIN)$@/plugin.go
+	cd $(PLUGIN)$@ && go test -v
 
 radiucal:
 	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(MAIN)
@@ -32,6 +33,7 @@ format:
 clean:
 	rm -rf $(BIN)
 	mkdir -p $(BIN)
+
 
 tools:
 	cd tools && make -C .
