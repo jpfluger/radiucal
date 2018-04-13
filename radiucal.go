@@ -265,9 +265,9 @@ func main() {
 	ctx := &context{debug: debug, secret: secret}
 	mods := conf.GetArrayOrEmpty("plugins")
 	pCtx := &plugins.PluginContext{}
-	pCtx.Cache = conf.GetTrue("cache")
 	pCtx.Logs = filepath.Join(lib, "log")
 	pCtx.Lib = lib
+	pCtx.Config = conf
 	pPath := filepath.Join(lib, "plugins")
 	for _, p := range mods {
 		oPath := filepath.Join(pPath, fmt.Sprintf("%s.rd", p))

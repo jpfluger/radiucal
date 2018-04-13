@@ -27,6 +27,9 @@ var (
 	db       string
 	logs     string
 	Plugin   umac
+	// Function callback on failed/passed
+	doCallback bool
+	callback   []string
 )
 
 func (l *umac) Reload() {
@@ -36,9 +39,11 @@ func (l *umac) Reload() {
 }
 
 func (l *umac) Setup(ctx *plugins.PluginContext) {
-	canCache = ctx.Cache
+	canCache = ctx.Config.GetTrue("cache")
 	logs = ctx.Logs
 	db = filepath.Join(ctx.Lib, "users")
+	callback = ctx.Config.GetArrayOrEmpty("usermac_callback")
+	doCallback = len(callback) > 0
 }
 
 func (l *umac) Pre(packet *radius.Packet) bool {
@@ -113,5 +118,11 @@ func mark(result, user, calling string, p *radius.Packet) {
 		return
 	}
 	defer f.Close()
-	plugins.FormatLog(f, t, result, fmt.Sprintf("%s (mac:%s) (nas:%s,ip:%s,port:%d)", user, calling, nas, nasip, nasport))
+	msg := fmt.Sprintf("%s (mac:%s) (nas:%s,ip:%s,port:%d)", user, calling, nas, nasip, nasport)
+	if doCallback {
+		args := callback[1:]
+		args = append(args, msg)
+		goutils.RunCommand(callback[0], args...)
+	}
+	plugins.FormatLog(f, t, result, msg)
 }

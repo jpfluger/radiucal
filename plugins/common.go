@@ -15,12 +15,12 @@ import (
 )
 
 type PluginContext struct {
-	// Allow plugins to cache data
-	Cache bool
 	// Location of logs directory
 	Logs string
 	// Location of the general lib directory
 	Lib string
+	// Backing config
+	Config *goutils.Config
 }
 
 type Module interface {
