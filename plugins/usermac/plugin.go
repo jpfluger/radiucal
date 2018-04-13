@@ -120,6 +120,7 @@ func mark(result, user, calling string, p *radius.Packet) {
 	defer f.Close()
 	msg := fmt.Sprintf("%s (mac:%s) (nas:%s,ip:%s,port:%d)", user, calling, nas, nasip, nasport)
 	if doCallback {
+		goutils.WriteDebug("perform callback", callback...)
 		args := callback[1:]
 		args = append(args, fmt.Sprintf("%s -> %s", result, msg))
 		goutils.RunCommand(callback[0], args...)

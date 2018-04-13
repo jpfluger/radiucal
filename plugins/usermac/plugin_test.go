@@ -4,7 +4,6 @@ import (
 	"testing"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
-	"github.com/epiphyte/goutils"
 )
 
 func TestUserMacBasics(t *testing.T) {
@@ -41,25 +40,35 @@ func newTestSet(t *testing.T, user, mac string, valid bool) (*radius.Packet, *um
 }
 
 func setupUserMac() *umac {
-	opts := goutils.NewLogOptions()
-	opts.Debug = true
-	opts.Info = true
-	goutils.ConfigureLogging(opts)
 	canCache = true
+	doCallback = false
+	callback = []string{}
 	logs = "./tests/"
 	db = "./tests/"
-	return &umac{}
+	m := &umac{}
+	m.Reload()
+	return m
 }
 
 func TestUserMacCache(t *testing.T) {
-	i := 0
-	for i <= 1 {
-		i++
+	pg, m := newTestSet(t, "test", "11-22-33-44-55-66", true)
+	pb, _ := newTestSet(t, "test", "11-22-33-44-55-68", false)
+	for _, b := range []bool{true, false} {
+		canCache = b
+		if !m.Pre(pg) {
+			t.Error("should re-auth")
+		}
+		if m.Pre(pb) {
+			t.Error("should be blacklisted")
+		}
 	}
 }
 
 func TestUserMacCallback(t *testing.T) {
-}
-
-func TestUserMacLog(t *testing.T) {
+	p, m := newTestSet(t, "test", "11-22-33-44-55-66", true)
+	newTestSet(t, "test", "12-22-33-44-55-66", false)
+	canCache = false
+	callback = []string{"echo"}
+	doCallback = true
+	m.Pre(p)
 }
