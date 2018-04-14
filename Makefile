@@ -9,14 +9,14 @@ ifeq ($(VERSION),)
 	VERSION=master
 endif
 export GOPATH := $(PWD)/vendor
-.PHONY: tools
+.PHONY: tools plugins
 
-all: clean deps modules radiucal tools format
+all: clean deps plugins radiucal tools format
 
 deps:
 	git submodule update --init --recursive
 
-modules: $(PLUGINS)
+plugins: $(PLUGINS)
 
 $(PLUGINS):
 	@echo $@
