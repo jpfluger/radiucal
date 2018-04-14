@@ -1,6 +1,6 @@
 BIN=bin/
 PLUGIN=plugins/
-MAIN=radiucal.go
+MAIN=radiucal.go context.go
 SRC=$(MAIN) $(shell find $(PLUGIN) -type f | grep "\.go$$")
 PLUGINS=$(shell ls $(PLUGIN) | grep -v "common.go")
 
@@ -24,6 +24,7 @@ $(PLUGINS):
 	cd $(PLUGIN)$@ && go test -v
 
 radiucal:
+	go test -v
 	go build -o $(BIN)radiucal -ldflags '-X main.vers=$(VERSION)' $(MAIN)
 
 format:

@@ -3,17 +3,14 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"github.com/epiphyte/goutils"
 	"github.com/epiphyte/radiucal/plugins"
-	"layeh.com/radius"
 	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"sync"
 )
 
@@ -27,18 +24,6 @@ var (
 	clients       map[string]*connection = make(map[string]*connection)
 	mutex         *sync.Mutex            = new(sync.Mutex)
 )
-
-type context struct {
-	debug    bool
-	secret   string
-	preauths []plugins.PreAuth
-	accts    []plugins.Accounting
-	auths    []plugins.Authing
-	// shortcuts
-	preauth bool
-	acct    bool
-	auth    bool
-}
 
 type connection struct {
 	client *net.UDPAddr
@@ -124,69 +109,11 @@ func runProxy(ctx *context) {
 		} else {
 			mutex.Unlock()
 		}
-		if ctx.preauth || ctx.auth {
-			p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
-			// we may not be able to always read a packet during conversation
-			// especially during initial EAP phases
-			// we let that go
-			if err == nil {
-				valid := true
-				if ctx.preauth {
-					for _, mod := range ctx.preauths {
-						if mod.Pre(p) {
-							continue
-						}
-						valid = false
-						goutils.WriteDebug(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
-						break
-					}
-				}
-				if ctx.auth {
-					for _, mod := range ctx.auths {
-						mod.Auth(p)
-					}
-				}
-				if !valid {
-					continue
-				}
-			}
+		if !ctx.authorize([]byte(buffer[0:n])) {
+			continue
 		}
 		_, err = conn.server.Write(buffer[0:n])
 		logError("server write", err)
-	}
-}
-
-func parseSecrets(secretFile string) string {
-	if goutils.PathNotExists(secretFile) {
-		panic("secrets file does not exist")
-	}
-	f, err := os.Open(secretFile)
-	if logError("secret parsing", err) {
-		panic("unable to read file for secrets")
-	}
-	defer f.Close()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		l := scanner.Text()
-		if strings.HasPrefix(l, "127.0.0.1") {
-			parts := strings.Split(l, " ")
-			return strings.TrimSpace(strings.Join(parts[1:], " "))
-		}
-	}
-	panic("unable to find shared secret entry")
-}
-
-func reload(ctx *context) {
-	goutils.WriteInfo("received SIGINT")
-	if ctx.preauth {
-		for _, mod := range ctx.preauths {
-			mod.Reload()
-		}
-	}
-	if ctx.acct {
-		for _, mod := range ctx.accts {
-			mod.Reload()
-		}
 	}
 }
 
@@ -197,17 +124,7 @@ func account(ctx *context) {
 		if logError("accounting udp error", err) {
 			continue
 		}
-
-		p, err := radius.Parse([]byte(buffer[0:n]), []byte(ctx.secret))
-		if err != nil {
-			// unable to read/parse this packet so move on
-			continue
-		}
-		if ctx.acct {
-			for _, mod := range ctx.accts {
-				mod.Account(p)
-			}
-		}
+		ctx.account(buffer[0:n])
 	}
 }
 
@@ -287,7 +204,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for _ = range c {
-			reload(ctx)
+			ctx.reload()
 		}
 	}()
 
