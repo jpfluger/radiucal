@@ -1,7 +1,7 @@
 BIN=bin/
 PLUGIN=plugins/
 MAIN=radiucal.go
-SRC=$(MAIN) $(shell find $(PLUGIN) -type f) $(TESTS)
+SRC=$(MAIN) $(shell find $(PLUGIN) -type f | grep "\.go$$")
 PLUGINS=$(shell ls $(PLUGIN) | grep -v "common.go")
 
 VERSION=
@@ -28,12 +28,11 @@ radiucal:
 
 format:
 	@echo $(SRC)
-	exit $(shell gofmt -l $(SRC) | wc -l)
+	exit $(shell echo $(SRC) | grep "\.go$$" | gofmt -l $(SRC) | wc -l)
 
 clean:
 	rm -rf $(BIN)
 	mkdir -p $(BIN)
-
 
 tools:
 	cd tools && make -C .
