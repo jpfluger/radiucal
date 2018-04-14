@@ -156,16 +156,8 @@ func runProxy(ctx *context) {
 	}
 }
 
-func pathExists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	} else {
-		return true
-	}
-}
-
 func parseSecrets(secretFile string) string {
-	if !pathExists(secretFile) {
+	if goutils.PathNotExists(secretFile) {
 		panic("secrets file does not exist")
 	}
 	f, err := os.Open(secretFile)
