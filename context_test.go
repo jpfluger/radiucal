@@ -147,14 +147,11 @@ func TestReload(t *testing.T) {
 	ctx, _ := getPacket(t)
 	m := &MockModule{}
 	ctx.reload()
-	ctx.acct = true
-	ctx.accts = append(ctx.accts, m)
-	ctx.auth = true
-	ctx.auths = append(ctx.auths, m)
-	ctx.preauth = true
-	ctx.preauths = append(ctx.preauths, m)
+	ctx.modules = append(ctx.modules, m)
+	ctx.modules = append(ctx.modules, m)
+	ctx.module = true
 	ctx.reload()
-	if m.reload != 3 {
+	if m.reload != 2 {
 		t.Error("should have reloaded each module once")
 	}
 }

@@ -17,10 +17,12 @@ type context struct {
 	preauths []plugins.PreAuth
 	accts    []plugins.Accounting
 	auths    []plugins.Authing
+	modules  []plugins.Module
 	// shortcuts
 	preauth bool
 	acct    bool
 	auth    bool
+	module  bool
 }
 
 func (ctx *context) authorize(buffer []byte) bool {
@@ -84,19 +86,9 @@ func parseSecretFile(secretFile string) (string, error) {
 
 func (ctx *context) reload() {
 	goutils.WriteInfo("reloading")
-	if ctx.auth {
-		for _, mod := range ctx.auths {
-			mod.Reload()
-		}
-	}
-	if ctx.preauth {
-		for _, mod := range ctx.preauths {
-			mod.Reload()
-		}
-	}
-	if ctx.acct {
-		for _, mod := range ctx.accts {
-			mod.Reload()
+	if ctx.module {
+		for _, m := range ctx.modules {
+			m.Reload()
 		}
 	}
 }

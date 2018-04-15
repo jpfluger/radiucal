@@ -198,6 +198,8 @@ func main() {
 			ctx.preauth = true
 			ctx.preauths = append(ctx.preauths, i)
 		}
+		ctx.modules = append(ctx.modules, obj)
+		ctx.module = true
 	}
 
 	c := make(chan os.Signal, 1)
