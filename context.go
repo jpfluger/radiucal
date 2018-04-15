@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/epiphyte/goutils"
 	"github.com/epiphyte/radiucal/plugins"
@@ -51,12 +52,20 @@ func (ctx *context) authorize(buffer []byte) bool {
 }
 
 func parseSecrets(secretFile string) string {
+	s, err := parseSecretFile(secretFile)
+	if logError("unable to read secrets", err) {
+		panic("unable to read secrets")
+	}
+	return s
+}
+
+func parseSecretFile(secretFile string) (string, error) {
 	if goutils.PathNotExists(secretFile) {
-		panic("secrets file does not exist")
+		return "", errors.New("no secrets file")
 	}
 	f, err := os.Open(secretFile)
-	if logError("secret parsing", err) {
-		panic("unable to read file for secrets")
+	if err != nil {
+		return "", err
 	}
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
@@ -64,10 +73,13 @@ func parseSecrets(secretFile string) string {
 		l := scanner.Text()
 		if strings.HasPrefix(l, "127.0.0.1") {
 			parts := strings.Split(l, " ")
-			return strings.TrimSpace(strings.Join(parts[1:], " "))
+			secret := strings.TrimSpace(strings.Join(parts[1:], " "))
+			if len(secret) > 0 {
+				return strings.TrimSpace(strings.Join(parts[1:], " ")), nil
+			}
 		}
 	}
-	panic("unable to find shared secret entry")
+	return "", errors.New("no secret found")
 }
 
 func (ctx *context) reload() {

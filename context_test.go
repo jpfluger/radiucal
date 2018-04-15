@@ -114,6 +114,31 @@ func getPacket(t *testing.T) (*context, []byte) {
 }
 
 func TestSecretParsing(t *testing.T) {
+	dir := "./tests/"
+	_, err := parseSecretFile(dir + "nofile")
+	if err.Error() != "no secrets file" {
+		t.Error("file does not exist")
+	}
+	_, err = parseSecretFile(dir + "emptysecrets")
+	if err.Error() != "no secret found" {
+		t.Error("file is empty")
+	}
+	_, err = parseSecretFile(dir + "nosecrets")
+	if err.Error() != "no secret found" {
+		t.Error("file is empty")
+	}
+	s, _ := parseSecretFile(dir + "onesecret")
+	if s != "mysecretkey" {
+		t.Error("wrong parsed key")
+	}
+	s, _ = parseSecretFile(dir + "multisecret")
+	if s != "test" {
+		t.Error("wrong parsed key")
+	}
+	_, err = parseSecretFile(dir + "noopsecret")
+	if err.Error() != "no secret found" {
+		t.Error("empty key")
+	}
 }
 
 func TestReload(t *testing.T) {
