@@ -19,6 +19,7 @@ func (m *MockModule) Name() string {
 }
 
 func (m *MockModule) Reload() {
+
 }
 
 func (m *MockModule) Setup(c *plugins.PluginContext) {
@@ -145,7 +146,25 @@ func TestReload(t *testing.T) {
 }
 
 func TestAcctNoMods(t *testing.T) {
+	ctx := &context{}
+	ctx.account(nil)
 }
 
 func TestAcct(t *testing.T) {
+	ctx, p := getPacket(t)
+	m := &MockModule{}
+	ctx.account(nil)
+	if m.acct != 0 {
+		t.Error("didn't account")
+	}
+	ctx.acct = true
+	ctx.accts = append(ctx.accts, m)
+	ctx.account(p)
+	if m.acct != 1 {
+		t.Error("didn't account")
+	}
+	ctx.account(p)
+	if m.acct != 2 {
+		t.Error("didn't account")
+	}
 }
