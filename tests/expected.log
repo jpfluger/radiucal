@@ -1,0 +1,4 @@
+[PASSED] test (mac:112233445566) (nas:unknown,ip:noip,port:0)
+[FAILED] test (mac:112233445567) (nas:unknown,ip:noip,port:0)
+[PASSED] test (mac:112233445566) (nas:unknown,ip:noip,port:0)
+[FAILED] test (mac:112233445567) (nas:unknown,ip:noip,port:0)
