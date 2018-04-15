@@ -13,7 +13,7 @@ endif
 export GOPATH := $(PWD)/vendor
 .PHONY: tools plugins
 
-all: clean deps plugins radiucal tools format
+all: clean deps plugins radiucal integrate tools format
 
 deps:
 	git submodule update --init --recursive
@@ -25,7 +25,7 @@ $(PLUGINS):
 	go build --buildmode=plugin -o $(BIN)$@.rd $(PLUGIN)$@/plugin.go
 	cd $(PLUGIN)$@ && go test -v
 
-integrate: radiucal plugins
+integrate:
 	mkdir -p $(TST)plugins/
 	mkdir -p $(TST)log/
 	rm -f $(TST)log/*
