@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
 	"net"
@@ -33,9 +35,12 @@ func runEndpoint() {
 	if err != nil {
 		panic("unable to listen")
 	}
+	count := 0
 	for {
 		var buffer []byte
-		srv.Read(buffer)
+		srv.ReadFromUDP(buffer)
+		count++
+		ioutil.WriteFile("./bin/count", []byte(fmt.Sprintf("count:%d", count)), 0644)
 	}
 }
 
