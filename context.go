@@ -85,9 +85,10 @@ func parseSecretFile(secretFile string) (string, error) {
 }
 
 func (ctx *context) reload() {
-	goutils.WriteInfo("reloading")
 	if ctx.module {
+		goutils.WriteInfo("reloading")
 		for _, m := range ctx.modules {
+			goutils.WriteDebug("reloading module", m.Name())
 			m.Reload()
 		}
 	}
