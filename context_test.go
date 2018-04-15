@@ -12,6 +12,7 @@ type MockModule struct {
 	auth int
 	pre  int
 	fail bool
+	reload int
 }
 
 func (m *MockModule) Name() string {
@@ -19,7 +20,7 @@ func (m *MockModule) Name() string {
 }
 
 func (m *MockModule) Reload() {
-
+	m.reload++
 }
 
 func (m *MockModule) Setup(c *plugins.PluginContext) {
@@ -143,6 +144,19 @@ func TestSecretParsing(t *testing.T) {
 }
 
 func TestReload(t *testing.T) {
+	ctx, _ := getPacket(t)
+	m := &MockModule{}
+	ctx.reload()
+	ctx.acct = true
+	ctx.accts = append(ctx.accts, m)
+	ctx.auth = true
+	ctx.auths = append(ctx.auths, m)
+	ctx.preauth = true
+	ctx.preauths = append(ctx.preauths, m)
+	ctx.reload()
+	if m.reload != 3 {
+		t.Error("should have reloaded each module once")
+	}
 }
 
 func TestAcctNoMods(t *testing.T) {

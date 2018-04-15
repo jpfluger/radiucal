@@ -83,7 +83,12 @@ func parseSecretFile(secretFile string) (string, error) {
 }
 
 func (ctx *context) reload() {
-	goutils.WriteInfo("received SIGINT")
+	goutils.WriteInfo("reloading")
+	if ctx.auth {
+		for _, mod := range ctx.auths {
+			mod.Reload()
+		}
+	}
 	if ctx.preauth {
 		for _, mod := range ctx.preauths {
 			mod.Reload()
