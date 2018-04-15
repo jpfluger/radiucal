@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"github.com/epiphyte/goutils"
 	"github.com/epiphyte/radiucal/plugins"
+	"layeh.com/radius"
 	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"sync"
 )
-
-const bSize = 1500
 
 var vers = "master"
 
@@ -68,7 +67,7 @@ func setup(hostport string, port int) error {
 }
 
 func runConnection(conn *connection) {
-	var buffer [bSize]byte
+	var buffer [radius.MaxPacketLength]byte
 	for {
 		n, err := conn.server.Read(buffer[0:])
 		if logError("unable to read", err) {
@@ -88,7 +87,7 @@ func runProxy(ctx *context) {
 		goutils.WriteInfo("=============WARNING==================")
 		goutils.WriteDebug("secret", ctx.secret)
 	}
-	var buffer [bSize]byte
+	var buffer [radius.MaxPacketLength]byte
 	for {
 		n, cliaddr, err := proxy.ReadFromUDP(buffer[0:])
 		if logError("read from udp", err) {
@@ -118,7 +117,7 @@ func runProxy(ctx *context) {
 }
 
 func account(ctx *context) {
-	var buffer [bSize]byte
+	var buffer [radius.MaxPacketLength]byte
 	for {
 		n, _, err := proxy.ReadFromUDP(buffer[0:])
 		if logError("accounting udp error", err) {
