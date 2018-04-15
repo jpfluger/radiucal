@@ -1,7 +1,9 @@
 BIN=bin/
+TST=tests/
 PLUGIN=plugins/
+HARNESS=$(TST)harness.go
 MAIN=radiucal.go context.go
-SRC=$(MAIN) $(shell find $(PLUGIN) -type f | grep "\.go$$")
+SRC=$(MAIN) $(shell find $(PLUGIN) -type f | grep "\.go$$") $(HARNESS)
 PLUGINS=$(shell ls $(PLUGIN) | grep -v "common.go")
 
 VERSION=
@@ -22,6 +24,13 @@ $(PLUGINS):
 	@echo $@
 	go build --buildmode=plugin -o $(BIN)$@.rd $(PLUGIN)$@/plugin.go
 	cd $(PLUGIN)$@ && go test -v
+
+integrate: radiucal plugins
+	mkdir -p $(TST)plugins/
+	mkdir -p $(TST)log/
+	rm -f $(TST)log/*
+	cp $(BIN)*.rd $(TST)plugins/
+	go build -o $(BIN)harness $(HARNESS)
 
 radiucal:
 	go test -v

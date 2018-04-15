@@ -3,3 +3,5 @@ bin/
 tools/certs/*
 tools/users/*
 radiucal.*
+tests/plugins/
+tests/log/
