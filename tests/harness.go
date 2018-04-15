@@ -1,10 +1,10 @@
 package main
 
 import (
-	"net"
 	"flag"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
+	"net"
 )
 
 func newPacket(user, mac string) []byte {
