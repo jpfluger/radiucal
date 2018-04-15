@@ -5,6 +5,7 @@ import (
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
 	"net"
+	"time"
 )
 
 func newPacket(user, mac string) []byte {
@@ -39,6 +40,7 @@ func runEndpoint() {
 }
 
 func write(user, mac string, conn *net.UDPConn) {
+	time.Sleep(1 * time.Second)
 	p := newPacket(user, mac)
 	_, err := conn.Write(p)
 	if err != nil {

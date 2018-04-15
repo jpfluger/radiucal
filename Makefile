@@ -31,6 +31,7 @@ integrate: radiucal plugins
 	rm -f $(TST)log/*
 	cp $(BIN)*.rd $(TST)plugins/
 	go build -o $(BIN)harness $(HARNESS)
+	./tests/run.sh
 
 radiucal:
 	go test -v
