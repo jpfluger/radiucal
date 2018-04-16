@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/epiphyte/radiucal/plugins"
+	"io/ioutil"
 	"layeh.com/radius"
 	"sync"
-	"io/ioutil"
 	"time"
 )
 
