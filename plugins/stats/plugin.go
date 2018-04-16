@@ -5,6 +5,7 @@ import (
 	"github.com/epiphyte/radiucal/plugins"
 	"layeh.com/radius"
 	"sync"
+	"io/ioutil"
 	"time"
 )
 
@@ -64,16 +65,13 @@ func write(mode string) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
-		f, t := plugins.DatedFile(dir, fmt.Sprintf("stats.%s", mode))
-		if f == nil {
-			return
-		}
+		f, t := plugins.NewFilePath(dir, fmt.Sprintf("stats.%s", mode))
 		if _, ok := info[mode]; !ok {
 			info[mode] = &modedata{first: t, count: 0, name: mode}
 		}
 		m, _ := info[mode]
 		m.last = t
 		m.count++
-		f.Write([]byte(m.String()))
+		ioutil.WriteFile(f, []byte(m.String()), 0644)
 	}()
 }

@@ -99,12 +99,14 @@ func KeyValueStrings(packet *radius.Packet) []string {
 	return datum
 }
 
-func DatedFile(path, name string) (*os.File, time.Time) {
-	return newFile(path, name, false)
-}
-
 func DatedAppendFile(path, name string) (*os.File, time.Time) {
 	return newFile(path, name, true)
+}
+
+func NewFilePath(path, name string) (string, time.Time) {
+	t := time.Now()
+	logPath := filepath.Join(path, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
+	return logPath, t
 }
 
 func newFile(path, name string, appending bool) (*os.File, time.Time) {
@@ -112,8 +114,7 @@ func newFile(path, name string, appending bool) (*os.File, time.Time) {
 	if appending {
 		flags = flags | os.O_APPEND
 	}
-	t := time.Now()
-	logPath := filepath.Join(path, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
+	logPath, t := NewFilePath(path, name)
 	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
 	if err != nil {
 		goutils.WriteError(fmt.Sprintf("unable to create file: %s", logPath), err)
