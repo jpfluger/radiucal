@@ -18,6 +18,7 @@ type context struct {
 	accts    []plugins.Accounting
 	auths    []plugins.Authing
 	modules  []plugins.Module
+	noreject bool
 	// shortcuts
 	preauth bool
 	acct    bool

@@ -110,20 +110,22 @@ func runProxy(ctx *context) {
 		}
 		buffered := []byte(buffer[0:n])
 		if !ctx.authorize(buffered) {
-			p, err := radius.Parse(buffered, []byte(ctx.secret))
-			if err == nil {
-				p = p.Response(radius.CodeAccessReject)
-				rej, err := p.Encode()
+			if !ctx.noreject {
+				p, err := radius.Parse(buffered, []byte(ctx.secret))
 				if err == nil {
-					proxy.WriteToUDP(rej, conn.client)
+					p = p.Response(radius.CodeAccessReject)
+					rej, err := p.Encode()
+					if err == nil {
+						proxy.WriteToUDP(rej, conn.client)
+					} else {
+						if ctx.debug {
+							goutils.WriteError("unable to encode rejection", err)
+						}
+					}
 				} else {
 					if ctx.debug {
-						goutils.WriteError("unable to encode rejection", err)
+						goutils.WriteError("unable to parse packets", err)
 					}
-				}
-			} else {
-				if ctx.debug {
-					goutils.WriteError("unable to parse packets", err)
 				}
 			}
 			continue
@@ -188,7 +190,7 @@ func main() {
 	lib := conf.GetStringOrDefault("dir", "/var/lib/radiucal/")
 	secrets := filepath.Join(lib, "secrets")
 	secret := parseSecrets(secrets)
-	ctx := &context{debug: debug, secret: []byte(secret)}
+	ctx := &context{debug: debug, secret: []byte(secret), noreject: conf.GetTrue("noreject")}
 	mods := conf.GetArrayOrEmpty("plugins")
 	pCtx := &plugins.PluginContext{}
 	pCtx.Logs = filepath.Join(lib, "log")
