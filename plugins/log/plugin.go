@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	lock   *sync.Mutex = new(sync.Mutex)
-	logs   string
-	Plugin logger
-	modes  []string
+	lock     *sync.Mutex = new(sync.Mutex)
+	logs     string
+	Plugin   logger
+	modes    []string
 	instance string
 )
 

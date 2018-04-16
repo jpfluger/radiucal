@@ -25,11 +25,11 @@ func (m *modedata) String() string {
 }
 
 var (
-	lock   *sync.Mutex = new(sync.Mutex)
-	dir    string
-	Plugin stats
-	info   map[string]*modedata = make(map[string]*modedata)
-	modes  []string
+	lock     *sync.Mutex = new(sync.Mutex)
+	dir      string
+	Plugin   stats
+	info     map[string]*modedata = make(map[string]*modedata)
+	modes    []string
 	instance string
 )
 
