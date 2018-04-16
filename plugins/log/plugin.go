@@ -29,6 +29,11 @@ func (l *logger) Setup(ctx *plugins.PluginContext) {
 	modes = plugins.DisabledModes(l, ctx)
 }
 
+func (l *logger) Pre(packet *radius.Packet) bool {
+	write(plugins.PreAuthMode, packet)
+	return true
+}
+
 func (l *logger) Auth(packet *radius.Packet) {
 	write(plugins.AuthingMode, packet)
 }

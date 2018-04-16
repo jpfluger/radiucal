@@ -25,6 +25,11 @@ func (t *tracer) Setup(ctx *plugins.PluginContext) {
 	modes = plugins.DisabledModes(t, ctx)
 }
 
+func (t *tracer) Pre(packet *radius.Packet) bool {
+	dump(plugins.PreAuthMode, packet)
+	return true
+}
+
 func (t *tracer) Auth(packet *radius.Packet) {
 	dump(plugins.AuthingMode, packet)
 }
