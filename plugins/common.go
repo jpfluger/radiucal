@@ -14,6 +14,12 @@ import (
 	"unicode"
 )
 
+const (
+	AccountingMode = "accounting"
+	AuthingMode = "auth"
+	PreAuthMode = "preauth"
+)
+
 type PluginContext struct {
 	// Location of logs directory
 	Logs string
@@ -107,6 +113,36 @@ func NewFilePath(path, name string) (string, time.Time) {
 	t := time.Now()
 	logPath := filepath.Join(path, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
 	return logPath, t
+}
+
+func Disabled(mode string, modes []string) bool {
+	if len(modes) == 0 {
+		return false
+	}
+	for _, m := range modes {
+		if m == mode {
+			return true
+		}
+	}
+	return false
+}
+
+func DisabledModes(m Module, ctx *PluginContext) []string {
+	name := m.Name()
+	accounting := ctx.Config.GetTrue(fmt.Sprintf("%s_disable_accounting", name))
+	authing := ctx.Config.GetTrue(fmt.Sprintf("%s_disable_auth", name))
+	preauth := ctx.Config.GetTrue(fmt.Sprintf("%s_disable_preauth", name))
+	var modes []string
+	if accounting {
+		modes = append(modes, AccountingMode)
+	}
+	if authing {
+		modes = append(modes, AuthingMode)
+	}
+	if preauth {
+		modes = append(modes, PreAuthMode)
+	}
+	return modes
 }
 
 func newFile(path, name string, appending bool) (*os.File, time.Time) {

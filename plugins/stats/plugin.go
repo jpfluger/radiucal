@@ -29,6 +29,7 @@ var (
 	dir    string
 	Plugin stats
 	info   map[string]*modedata = make(map[string]*modedata)
+	modes []string
 )
 
 type stats struct {
@@ -46,25 +47,29 @@ func (s *stats) Reload() {
 
 func (s *stats) Setup(ctx *plugins.PluginContext) {
 	dir = ctx.Logs
+	modes = plugins.DisabledModes(s, ctx)
 }
 
 func (s *stats) Pre(packet *radius.Packet) bool {
-	write("preauth")
+	write(plugins.PreAuthMode)
 	return true
 }
 
 func (s *stats) Auth(packet *radius.Packet) {
-	write("auth")
+	write(plugins.AuthingMode)
 }
 
 func (s *stats) Account(packet *radius.Packet) {
-	write("accounting")
+	write(plugins.AccountingMode)
 }
 
 func write(mode string) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
+		if plugins.Disabled(mode, modes) {
+			return
+		}
 		f, t := plugins.NewFilePath(dir, fmt.Sprintf("stats.%s", mode))
 		if _, ok := info[mode]; !ok {
 			info[mode] = &modedata{first: t, count: 0, name: mode}
