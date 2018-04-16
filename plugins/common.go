@@ -21,6 +21,8 @@ type PluginContext struct {
 	Lib string
 	// Backing config
 	Config *goutils.Config
+	// Instance name
+	Instance string
 }
 
 type Module interface {

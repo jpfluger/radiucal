@@ -177,6 +177,7 @@ func main() {
 	pCtx.Logs = filepath.Join(lib, "log")
 	pCtx.Lib = lib
 	pCtx.Config = conf
+	pCtx.Instance = *instance
 	pPath := filepath.Join(lib, "plugins")
 	for _, p := range mods {
 		oPath := filepath.Join(pPath, fmt.Sprintf("%s.rd", p))
