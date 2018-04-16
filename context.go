@@ -40,7 +40,6 @@ func (ctx *context) authorize(buffer []byte) bool {
 					}
 					valid = false
 					goutils.WriteDebug(fmt.Sprintf("unauthorized (failed: %s)", mod.Name()))
-					break
 				}
 			}
 			if ctx.auth {
