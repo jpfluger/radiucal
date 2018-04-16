@@ -1,6 +1,6 @@
 #!/bin/bash
 bin/radiucal --config tests/test.conf &
-bin/radiucal --config tests/test.acct.conf &
+bin/radiucal --instance acct --config tests/test.acct.conf &
 sleep 1
 bin/harness --endpoint=true &
 sleep 1
@@ -13,7 +13,9 @@ pkill harness
 
 COMPARE="results stats"
 cat tests/log/radiucal.audit* | cut -d " " -f 2- > bin/results.log
-cat tests/log/radiucal.stats.{auth,accounting,preauth}.* | grep -v -E "^(first|last)" > bin/stats.log
+for f in $(echo "acct.stats stats.{auth,preauth}"); do
+    cat tests/log/radiucal.${f}.* | grep -v -E "^(first|last)" > bin/stats.log
+done
 
 for d in $(echo $COMPARE); do
     diff -u bin/$d.log tests/expected.$d.log
