@@ -108,7 +108,24 @@ func runProxy(ctx *context) {
 		} else {
 			clientLock.Unlock()
 		}
-		if !ctx.authorize([]byte(buffer[0:n])) {
+		buffered := []byte(buffer[0:n])
+		if !ctx.authorize(buffered) {
+			p, err := radius.Parse(buffered, []byte(ctx.secret))
+			if err == nil {
+				p = p.Response(radius.CodeAccessReject)
+				rej, err := p.Encode()
+				if err == nil {
+					proxy.WriteToUDP(rej, conn.client)
+				} else {
+					if ctx.debug {
+						goutils.WriteError("unable to encode rejection", err)
+					}
+				}
+			} else {
+				if ctx.debug {
+					goutils.WriteError("unable to parse packets", err)
+				}
+			}
 			continue
 		}
 		_, err = conn.server.Write(buffer[0:n])
