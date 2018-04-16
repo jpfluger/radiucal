@@ -13,7 +13,7 @@ import (
 
 type context struct {
 	debug    bool
-	secret   string
+	secret   []byte
 	preauths []plugins.PreAuth
 	accts    []plugins.Accounting
 	auths    []plugins.Authing

@@ -85,7 +85,7 @@ func runProxy(ctx *context) {
 		goutils.WriteInfo("dumps from debugging may contain secrets")
 		goutils.WriteInfo("do NOT share debugging dumps")
 		goutils.WriteInfo("=============WARNING==================")
-		goutils.WriteDebug("secret", ctx.secret)
+		goutils.WriteDebug("secret", string(ctx.secret))
 	}
 	var buffer [radius.MaxPacketLength]byte
 	for {
@@ -188,7 +188,7 @@ func main() {
 	lib := conf.GetStringOrDefault("dir", "/var/lib/radiucal/")
 	secrets := filepath.Join(lib, "secrets")
 	secret := parseSecrets(secrets)
-	ctx := &context{debug: debug, secret: secret}
+	ctx := &context{debug: debug, secret: []byte(secret)}
 	mods := conf.GetArrayOrEmpty("plugins")
 	pCtx := &plugins.PluginContext{}
 	pCtx.Logs = filepath.Join(lib, "log")

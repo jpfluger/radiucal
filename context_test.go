@@ -99,9 +99,8 @@ func TestAuth(t *testing.T) {
 
 func getPacket(t *testing.T) (*context, []byte) {
 	c := &context{}
-	c.secret = "secret"
-    var secret = []byte(c.secret)
-    p := radius.New(radius.CodeAccessRequest, secret)
+	c.secret = []byte("secret")
+    p := radius.New(radius.CodeAccessRequest, c.secret)
     if err := rfc2865.UserName_AddString(p, "user"); err != nil {
         t.Error("unable to add user name")
     }
