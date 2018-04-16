@@ -30,6 +30,7 @@ var (
 	Plugin stats
 	info   map[string]*modedata = make(map[string]*modedata)
 	modes  []string
+	instance string
 )
 
 type stats struct {
@@ -47,6 +48,7 @@ func (s *stats) Reload() {
 
 func (s *stats) Setup(ctx *plugins.PluginContext) {
 	dir = ctx.Logs
+	instance = ctx.Instance
 	modes = plugins.DisabledModes(s, ctx)
 }
 
@@ -70,7 +72,7 @@ func write(mode string) {
 		if plugins.Disabled(mode, modes) {
 			return
 		}
-		f, t := plugins.NewFilePath(dir, fmt.Sprintf("stats.%s", mode))
+		f, t := plugins.NewFilePath(dir, fmt.Sprintf("stats.%s", mode), instance)
 		if _, ok := info[mode]; !ok {
 			info[mode] = &modedata{first: t, count: 0, name: mode}
 		}

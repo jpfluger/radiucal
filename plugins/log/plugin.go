@@ -12,6 +12,7 @@ var (
 	logs   string
 	Plugin logger
 	modes  []string
+	instance string
 )
 
 type logger struct {
@@ -27,6 +28,7 @@ func (l *logger) Reload() {
 func (l *logger) Setup(ctx *plugins.PluginContext) {
 	logs = ctx.Logs
 	modes = plugins.DisabledModes(l, ctx)
+	instance = ctx.Instance
 }
 
 func (l *logger) Pre(packet *radius.Packet) bool {
@@ -49,7 +51,7 @@ func write(mode string, packet *radius.Packet) {
 		if plugins.Disabled(mode, modes) {
 			return
 		}
-		f, t := plugins.DatedAppendFile(logs, mode)
+		f, t := plugins.DatedAppendFile(logs, mode, instance)
 		if f == nil {
 			return
 		}

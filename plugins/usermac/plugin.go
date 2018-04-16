@@ -27,6 +27,7 @@ var (
 	db       string
 	logs     string
 	Plugin   umac
+	instance string
 	// Function callback on failed/passed
 	doCallback bool
 	callback   []string
@@ -41,6 +42,7 @@ func (l *umac) Reload() {
 func (l *umac) Setup(ctx *plugins.PluginContext) {
 	canCache = ctx.Config.GetTrue("cache")
 	logs = ctx.Logs
+	instance = ctx.Instance
 	db = filepath.Join(ctx.Lib, "users")
 	callback = ctx.Config.GetArrayOrEmpty("usermac_callback")
 	doCallback = len(callback) > 0
@@ -113,7 +115,7 @@ func mark(result, user, calling string, p *radius.Packet) {
 	nasport := NASPort_Get(p)
 	fileLock.Lock()
 	defer fileLock.Unlock()
-	f, t := plugins.DatedAppendFile(logs, "audit")
+	f, t := plugins.DatedAppendFile(logs, "audit", instance)
 	if f == nil {
 		return
 	}
