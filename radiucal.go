@@ -131,13 +131,14 @@ func main() {
 	goutils.WriteInfo(fmt.Sprintf("radiucal (%s)", vers))
 	var config = flag.String("config", "/etc/radiucal/radiucal.conf", "Configuration file")
 	var instance = flag.String("instance", "", "Instance name")
+	var debugging = flag.Bool("debug", false, "debugging")
 	flag.Parse()
 	conf, err := goutils.LoadConfig(*config, goutils.NewConfigSettings())
 	if err != nil {
 		goutils.WriteError("unable to load config", err)
 		panic("invalid/unable to load config")
 	}
-	debug := conf.GetTrue("debug")
+	debug := conf.GetTrue("debug") || *debugging
 	logOpts := goutils.NewLogOptions()
 	logOpts.Debug = debug
 	logOpts.Info = true
