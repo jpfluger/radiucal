@@ -21,7 +21,7 @@ var (
 	proxy         *net.UDPConn
 	serverAddress *net.UDPAddr
 	clients       map[string]*connection = make(map[string]*connection)
-	mutex         *sync.Mutex            = new(sync.Mutex)
+	clientLock    *sync.Mutex            = new(sync.Mutex)
 )
 
 type connection struct {
@@ -94,19 +94,19 @@ func runProxy(ctx *context) {
 			continue
 		}
 		saddr := cliaddr.String()
-		mutex.Lock()
+		clientLock.Lock()
 		conn, found := clients[saddr]
 		if !found {
 			conn = newConnection(serverAddress, cliaddr)
 			if conn == nil {
-				mutex.Unlock()
+				clientLock.Unlock()
 				continue
 			}
 			clients[saddr] = conn
-			mutex.Unlock()
+			clientLock.Unlock()
 			go runConnection(conn)
 		} else {
-			mutex.Unlock()
+			clientLock.Unlock()
 		}
 		if !ctx.authorize([]byte(buffer[0:n])) {
 			continue
@@ -205,6 +205,9 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for _ = range c {
+			clientLock.Lock()
+			clients = make(map[string]*connection)
+			clientLock.Unlock()
 			ctx.reload()
 		}
 	}()
