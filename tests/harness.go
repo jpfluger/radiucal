@@ -53,8 +53,12 @@ func write(user, mac string, conn *net.UDPConn) {
 	}
 }
 
-func test() {
-	addr, err := net.ResolveUDPAddr("udp", ":1812")
+func test(accounting bool) {
+	bind := "1812"
+	if accounting {
+		bind = "1813"
+	}
+	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%s", bind))
 	if err != nil {
 		panic("unable to get address")
 	}
@@ -73,6 +77,7 @@ func main() {
 	if *endpoint {
 		runEndpoint()
 	} else {
-		test()
+		test(false)
+		test(true)
 	}
 }
