@@ -61,7 +61,7 @@ func write(mode string) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
-		f, t := plugins.DatedFile(dir, fmt.Sprintf("stats.%s", mode))
+		f, t := plugins.DatedAppendFile(dir, fmt.Sprintf("stats.%s", mode))
 		if f == nil {
 			return
 		}

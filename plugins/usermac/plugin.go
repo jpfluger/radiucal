@@ -113,7 +113,7 @@ func mark(result, user, calling string, p *radius.Packet) {
 	nasport := NASPort_Get(p)
 	fileLock.Lock()
 	defer fileLock.Unlock()
-	f, t := plugins.DatedFile(logs, "audit")
+	f, t := plugins.DatedAppendFile(logs, "audit")
 	if f == nil {
 		return
 	}

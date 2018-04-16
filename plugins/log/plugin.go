@@ -39,7 +39,7 @@ func write(mode string, packet *radius.Packet) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
-		f, t := plugins.DatedFile(logs, mode)
+		f, t := plugins.DatedAppendFile(logs, mode)
 		if f == nil {
 			return
 		}

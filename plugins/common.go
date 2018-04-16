@@ -99,7 +99,7 @@ func KeyValueStrings(packet *radius.Packet) []string {
 	return datum
 }
 
-func DatedFile(path, name string) (*os.File, time.Time) {
+func DatedAppendFile(path, name string) (*os.File, time.Time) {
 	t := time.Now()
 	logPath := filepath.Join(path, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))
 	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
