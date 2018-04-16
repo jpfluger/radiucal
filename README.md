@@ -13,8 +13,6 @@ Expectations:
 * Fully replace freeradius for 802.1x/AAA/etc.
 * utilize a trimmed version of hostapd (from here on called `hostapd-server`) using a config and PKGBUILD [here](https://github.com/epiphyte/pkgbuilds/tree/master/hostapd)
 
-# requirements
-
 ## AAA
 
 * Authentication (Your driver's license proves that you're the person you say you are)
@@ -25,15 +23,14 @@ Expectations:
 * Support a port-restricted LAN (+wifi) in a controlled, physical area
 * Provide a singular authentication strategy for supported clients using peap+mschapv2 (no CA validation).
 * Windows 10
-* Arch/Fedora Linux (any supporting modern versions of NetworkManager or systemd-networkd when server/headless)
+* Linux (any supporting modern versions of NetworkManager or systemd-networkd when server/headless)
 * Android 7+
 * Map authenticated user+MAC combinations to specific VLANs
 * Support MAC-based authentication (bypass) for systems that can not authenticate themselves
-* Integrate with Ubiquiti devices
+* Integrate with a variety of network equipment
 * Avoid client-issued certificates (and management)
 * Centralized configuration file
 * As few open endpoints as possible on the radius server (only open ports 1812 and 1813 for radius)
-* Avoid deviations from the standard/installed freeradius configurations
 
 **These goals began with our usage of freeradius and continue to be vital to our operation**
 
@@ -41,12 +38,17 @@ Expectations:
 
 install from the epiphyte [repository](https://mirror.epiphyte.network/repos)
 ```
-pacman -S hostapd-server radiucal radicual-tools
+pacman -S hostapd-server radiucal
 ```
 
 adminstrative machines should install
 ```
 pacman -S radiucual-utils
+```
+
+matching tooling for utils on a server
+```
+pacman -S radiucal-tools
 ```
 
 ## services
