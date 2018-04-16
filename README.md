@@ -139,7 +139,7 @@ part of both utils and tools, radiucal-bootstrap is used to manage the network c
 ### remotely
 
 this requires that:
-* the radius server is configured to listen/accept on the given ip below (e.g. iptables and client.conf setup)
+* the radius server is configured to listen/accept on the given ip below
 * MAC is formatted as 00:11:22:aa:bb:cc
 
 start with installing wpa_supplicant to get eapol_test
