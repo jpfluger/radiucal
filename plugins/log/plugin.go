@@ -11,6 +11,7 @@ var (
 	lock   *sync.Mutex = new(sync.Mutex)
 	logs   string
 	Plugin logger
+	modes  []string
 )
 
 type logger struct {
@@ -25,20 +26,24 @@ func (l *logger) Reload() {
 
 func (l *logger) Setup(ctx *plugins.PluginContext) {
 	logs = ctx.Logs
+	modes = plugins.DisabledModes(l, ctx)
 }
 
 func (l *logger) Auth(packet *radius.Packet) {
-	write("auth", packet)
+	write(plugins.AuthingMode, packet)
 }
 
 func (l *logger) Account(packet *radius.Packet) {
-	write("accounting", packet)
+	write(plugins.AccountingMode, packet)
 }
 
 func write(mode string, packet *radius.Packet) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
+		if plugins.Disabled(mode, modes) {
+			return
+		}
 		f, t := plugins.DatedAppendFile(logs, mode)
 		if f == nil {
 			return
