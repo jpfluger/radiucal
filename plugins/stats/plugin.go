@@ -29,7 +29,7 @@ var (
 	dir    string
 	Plugin stats
 	info   map[string]*modedata = make(map[string]*modedata)
-	modes []string
+	modes  []string
 )
 
 type stats struct {

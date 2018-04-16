@@ -16,8 +16,8 @@ import (
 
 const (
 	AccountingMode = "accounting"
-	AuthingMode = "auth"
-	PreAuthMode = "preauth"
+	AuthingMode    = "auth"
+	PreAuthMode    = "preauth"
 )
 
 type PluginContext struct {
