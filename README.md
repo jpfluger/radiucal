@@ -1,7 +1,7 @@
 radiucal
 ===
 
-Using a go proxy+hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
+Designed for using a go proxy+hostapd as an 802.1x RADIUS server for network authentication (or how to live without freeradius)
 
 # purpose
 
@@ -19,7 +19,8 @@ Expectations:
 * Authorization (Your driver's license lets you drive your car, motorcycle, or CDL)
 * Accounting (A log shows that you've driven on these roads at a certain date)
 
-## Goals:
+## Goals
+
 * Support a port-restricted LAN (+wifi) in a controlled, physical area
 * Provide a singular authentication strategy for supported clients using peap+mschapv2 (no CA validation).
 * Windows 10
@@ -33,6 +34,16 @@ Expectations:
 * As few open endpoints as possible on the radius server (only open ports 1812 and 1813 for radius)
 
 **These goals began with our usage of freeradius and continue to be vital to our operation**
+
+## Proxy
+
+radiucal is a go proxy that receives UDP packets and routes them along (namely to hostapd/another radius server)
+
+the proxy:
+* provides a modularized/plugin approach to handle preauth, auth, and accounting actions
+* can support user+mac filtering, logging, trace output, and simple stat output via plugins
+* provides a cut-in for more plugins
+* overrides the concept of "radius_clients" as all will have to have a single shared secret
 
 # install
 
@@ -76,26 +87,14 @@ you may view an example config for more settings: `/etc/radiucal/example.conf`
 
 ## setup/notes
 
-if you wish to use radiucal-tools to generate certs
+if you wish to use radiucal-tools to generate certs for hostapd
 ```
 cd /etc/hostapd/certs
 ./renew.sh
 ```
 and follow the prompts
 
-# components
-
-## radiucal
-
-radiucal is a go proxy that receives UDP packets and routes them along (namely to hostapd/another radius server)
-
-the proxy:
-* provides a preauth user+mac filter check
-* logs preauth success/failure
-* provides a cut-in for debugging
-* overrides the concept of "radius_clients" as all will have to have a single shared secret
-
-### build (dev)
+# build (dev)
 
 clone this repository
 ```
@@ -109,12 +108,14 @@ run (with a socket listening to be proxied to, e.g. hostapd-server)
 
 [![Build Status](https://travis-ci.org/epiphyte/radiucal.png)](https://travis-ci.org/epiphyte/radiucal)
 
-## radiucal-utils
+## helpers
+
+### radiucal-utils
 
 tools to:
 * provide adminstrative management (subset of radiucal-tools)
 
-## radiucal-tools
+### radiucal-tools
 
 tools to:
 * report from radiucal
@@ -125,7 +126,7 @@ tools to:
 
 please see above but a cert generation setup is installed in the etc area for hostapd
 
-## radiucal-bootstrap
+### radiucal-bootstrap
 
 part of both utils and tools, radiucal-bootstrap is used to manage the network configuration (netconf)
 * takes pythonic definitions of users and produces an `eap_users` file that hostapd can use
