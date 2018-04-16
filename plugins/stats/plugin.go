@@ -16,7 +16,7 @@ type modedata struct {
 }
 
 func (m *modedata) String() string {
-	return fmt.Sprintf("first: %s\nlast: %s\ncount: %d\n name: %s\n",
+	return fmt.Sprintf("first: %s\nlast: %s\ncount: %d\nname: %s\n",
 		m.first.Format("2006-01-02T15:04:05"),
 		m.last.Format("2006-01-02T15:04:05"),
 		m.count,
