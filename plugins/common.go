@@ -108,9 +108,9 @@ func DatedAppendFile(path, name string) (*os.File, time.Time) {
 }
 
 func newFile(path, name string, appending bool) (*os.File, time.Time) {
-	flags := os.O_RDWR|os.O_CREATE
+	flags := os.O_RDWR | os.O_CREATE
 	if appending {
-		flags = flags|os.O_APPEND
+		flags = flags | os.O_APPEND
 	}
 	t := time.Now()
 	logPath := filepath.Join(path, fmt.Sprintf("radiucal.%s.%s", name, t.Format("2006-01-02")))

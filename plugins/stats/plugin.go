@@ -38,6 +38,9 @@ func (s *stats) Name() string {
 }
 
 func (s *stats) Reload() {
+	lock.Lock()
+	defer lock.Unlock()
+	info = make(map[string]*modedata)
 }
 
 func (s *stats) Setup(ctx *plugins.PluginContext) {
@@ -61,7 +64,7 @@ func write(mode string) {
 	go func() {
 		lock.Lock()
 		defer lock.Unlock()
-		f, t := plugins.DatedAppendFile(dir, fmt.Sprintf("stats.%s", mode))
+		f, t := plugins.DatedFile(dir, fmt.Sprintf("stats.%s", mode))
 		if f == nil {
 			return
 		}
